@@ -124,13 +124,8 @@ app.layout = html.Div([
 
     ])
 
-@app.callback(
-    Output(component_id='s-variable', component_property='children'),
-    [Input(component_id='r-variable', component_property='value')]
-)
-def update_output_div(input_value):
-    return 'Adjust settings for {}'.format(input_value)
 
+#Update Sliders when dropdown resets all
 @app.callback([Output('sp-cassava', 'value'),
               Output('sp-groundnuts', 'value'),
               Output('sp-maize', 'value'),
@@ -139,6 +134,18 @@ def update_output_div(input_value):
               [Input('dd-p', 'value')])
 def update_all_p(value):
     return value, value, value, value, value
+
+#select proper Sliders set
+@app.callback(
+    Output(component_id='s-variable', component_property='children'),
+    [Input(component_id='r-variable', component_property='value')]
+)
+def update_output_div(input_value):
+    if input_value == 'P':
+        return 'Adjust settings for {}'.format(input_value)
+    else:
+        return 'not p'
+
 
 # @app.callback(Output('time-slider', 'children'), [Input('my-dropdown', 'value')])
 # def change_range(dropdown_value): return slider_options(dropdown_value)
