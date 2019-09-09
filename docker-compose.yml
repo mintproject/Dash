@@ -1,0 +1,19 @@
+
+version: '3'
+services:
+  web_server:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - 10000:80
+    depends_on:
+      - app
+  app:
+    container_name: flask
+    build:
+      context: .
+      dockerfile: docker/flask/Dockerfile
+    expose:
+      - 8080
