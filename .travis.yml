@@ -1,0 +1,32 @@
+language: generic
+addons:
+  ssh_known_hosts:
+  - vm1.mint.isi.edu
+env:
+  matrix:
+  - DOCKER_COMPOSE_VERSION=1.23.2
+  global:
+    secure: ure2FGCq/RxlDEnbE4J4MVrynahBbNhdD4PH4MHEI4PvUbbMemR3vsW7gZU7YYkyA9hxCst+XI1jcjg8VArSVLiWDOnuY2ZI+gnHmQPJicDTJEcWvjCxO+3yj2nGxxlqDylqneppld7KctMkhjERvbzFOckDRCaCCsfiW6Qx2Px+vuGn5jp3hT2UzP0y+nWUUcgjjW6/+EO9YPBgrK6P75N93OMNbqT+Mpo0m+gZrT5cRkByF6kriSafj6O0dX/tNL0P6oDYG0yo95dJhKZ0GBb8kEvAK+YkZft66YGrtGWU+4WiPZ9cHAtfEOz7ABGf4vYrgCHoUZptVNX/vvq+PuNVtRHCMYhXv4r3LXlwtZUPCOP7LRwMD4MT6rTi39OJKjdvT+4/kwOQNY5J5045YD2+NZOzea4wN/Fd7Fu3zFMfoYFeZ211qqWmw4vKbUcmiwos0NM+yMl9ocZYWhLD0We3knPLO6ohf05iB2duUFxlr7VTyhFP9xFVNZAvBX9Rd7/FTDruorVN6r+OnpvLI1HjoKR7WVGC4P9+TQwmFfAeNYxg6zeN3XrrLWh/cUd7hxBsGeZM9bHq8eq1ecJ/grB7mBQCOXM2ZWEHumtfKUikaJYuHXOgQnW2LuaqdoMoLLGNEqyKisANLmu1023HNaLxhpdDX2zJn7vYW574pvo=
+services:
+- docker
+before_install:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- sudo rm /usr/local/bin/docker-compose
+- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname
+  -s`-`uname -m` > docker-compose
+- chmod +x docker-compose
+- sudo mv docker-compose /usr/local/bin
+- docker-compose build
+- docker-compose push
+before_deploy:
+- echo $key_pass | gpg --passphrase-fd 0 id_travis_rsa.gpg
+- eval "$(ssh-agent -s)"
+- chmod 600 id_travis_rsa
+- ssh-add id_travis_rsa
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: bash scripts/deploy.sh /etc/docker/services/dev/viz_dash/docker-compose.yml
+  on:
+    all_branches: true
+    condition: "$TRAVIS_BRANCH =~ ^(dev)$"
