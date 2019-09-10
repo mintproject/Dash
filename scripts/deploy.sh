@@ -6,5 +6,5 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-ssh mintui@vm1.mint.isi.edu "docker-compose -f $DOCKER_COMPOSE pull && docker-compose -f $DOCKER_COMPOSE up -d"
+ssh deploy@vm1.mint.isi.edu "docker-compose -f $DOCKER_COMPOSE pull && docker-compose -f $DOCKER_COMPOSE up -d"
 exit $?	
