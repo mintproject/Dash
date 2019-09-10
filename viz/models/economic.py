@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from viz.app import app
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -7,7 +6,8 @@ from dash.dependencies import Input, Output
 
 import pandas as pd
 import plotly.graph_objs as go
-
+import plotly.express as px
+import base64
 from viz.app import app
 
 #Link to Econ Model Data
@@ -28,10 +28,6 @@ dgroundnuts = df[df['crop']=='groundnuts']
 dmaize = df[df['crop']=='maize']
 dsesame = df[df['crop']=='sesame']
 dsorghum = df[df['crop']=='sorghum']
-
-#Config elements
-app = dash.Dash(__name__)
-app.config.suppress_callback_exceptions = True
 
 #unique c2 subsidy values
 sc2 = df['p'].unique()
@@ -58,11 +54,11 @@ c1sesame = df[df['crop']=='sesame']['c1'].unique()
 c1sorghum = df[df['crop']=='sorghum']['c1'].unique()
 
 
-image_filename = "./images/ConceptMap_Econ.jpg"# replace with your own image
+image_filename = "./viz/assets/images/ConceptMap_Econ.jpg"# replace with your own image
 encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 # Layout
-app.layout = html.Div([
+layout = html.Div([
     html.H2('Economic Agricultural Data'),
     html.Div([
             html.Div([
@@ -282,7 +278,7 @@ app.layout = html.Div([
                     ]),
                     html.Div(id='tabs-content')
                 ],className="nine columns" ),
-    ],className="row")        
+    ],className="row")
 ])
 
 
@@ -391,7 +387,3 @@ def update_figure(c1value,pvalue):
 ##            hovermode='closest'
 ##        )
 ##    }
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True,port=8080)
