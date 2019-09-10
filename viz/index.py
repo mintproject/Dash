@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from viz.app import app
-from viz.models import economic, cat
+from viz.models import *
 import importlib
 
 app.layout = html.Div([
