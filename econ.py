@@ -57,7 +57,7 @@ c1sesame = df[df['crop']=='sesame']['c1'].unique()
 c1sorghum = df[df['crop']=='sorghum']['c1'].unique()
 
 
-image_filename = "./images/ConceptMap_Econ.jpg"# replace with your own image
+image_filename = "./assets/images/ConceptMap_Econ.jpg"# replace with your own image
 encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 # Layout
