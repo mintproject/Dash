@@ -2,7 +2,6 @@
 version: '3'
 services:
   web_server:
-    container_name: nginx
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
@@ -11,7 +10,7 @@ services:
     depends_on:
       - app
   app:
-    container_name: flask
+    image: mintproject/dash-viz:latest
     build:
       context: .
       dockerfile: docker/flask/Dockerfile

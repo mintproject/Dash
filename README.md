@@ -10,7 +10,9 @@ The directory `viz` contains the source code.
   
 - `app.py`: Global configuration.
 - `uswgi.py`: Run the production server.
-- `models/*.py`: Each file represents the model as python module. For example, the economic.py is the models.economic and it represents the economic model.
+- `models/<name>/`: Each directory represents the model as python module. For example, the directory economic is the models.economic and it represents the economic model.
+- `models/<name>/__init__.py`: Code the python module.
+- `models/<name>/data/`: Data of the module
 - `index.py`: Imports the module and expose it as a path on the webserver. For example, the module models.economic is exposed as /economic.
 - `assets/`: The assets director for static files.
 
