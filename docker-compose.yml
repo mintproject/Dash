@@ -15,5 +15,7 @@ services:
     build:
       context: .
       dockerfile: docker/flask/Dockerfile
+    ports:
+      - 10001:8080
     expose:
       - 8080
