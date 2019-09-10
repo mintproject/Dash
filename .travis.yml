@@ -26,7 +26,7 @@ before_deploy:
 deploy:
 - provider: script
   skip_cleanup: true
-  script: bash scripts/deploy.sh $TRAVIS_BUILD_DIR/mint-ui-lit mintui_$TRAVIS_BRANCH
+  script: bash scripts/deploy.sh /etc/docker/services/dev/viz_dash/docker-compose.yml
   on:
     all_branches: true
     condition: "$TRAVIS_BRANCH =~ ^(dev)$"
