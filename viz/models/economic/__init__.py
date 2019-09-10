@@ -11,7 +11,7 @@ import base64
 from viz.app import app
 
 #Link to Econ Model Data
-df = pd.read_csv('./Data/EconModel/results_summary_bycrop_aggregate.csv')
+df = pd.read_csv('./viz/models/economic/data/results_summary_bycrop_aggregate.csv')
 ##crop               55 non-null object
 ##p                  55 non-null int64
 ##c1                 55 non-null int64
