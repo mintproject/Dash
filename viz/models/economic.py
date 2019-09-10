@@ -1,26 +1,39 @@
+# -*- coding: utf-8 -*-
+from viz.app import app
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+
 import pandas as pd
 import plotly.graph_objs as go
-import numpy as np
 
 from viz.app import app
 
-#Link to Barton Springs Data
-df = pd.read_csv(
-    './Data/EconModel/'
-    'results_summary_bycrop.csv')
-dp = df['p'].unique()
-dc1 = df['c1'].unique()
-dc2 = df['c2'].unique()
-dcassava = df[df['crop']=='cassava']['p'].unique()
-dgroundnuts = df[df['crop']=='groundnuts']['p'].unique()
-dmaize = df[df['crop']=='maize']['p'].unique()
-dsesame = df[df['crop']=='sesame']['p'].unique()
-dsorghum = df[df['crop']=='sorghum']['p'].unique()
-#'groundnuts', 'maize', 'sesame', 'sorghum', 'cassava']
+# Link to Econ Model Data
+df = pd.read_csv('./Data/EconModel/results_summary_bycrop.csv')
+# Config elements
+
+# unique values for sliders
+sc1 = df['c1'].unique()
+sc2 = df['c2'].unique()
+
+# unique fertilizer subsidy values
+fall = df['p'].unique()
+fcassava = df[df['crop'] == 'cassava']['p'].unique()
+fgroundnuts = df[df['crop'] == 'groundnuts']['p'].unique()
+fmaize = df[df['crop'] == 'maize']['p'].unique()
+fsesame = df[df['crop'] == 'sesame']['p'].unique()
+fsorghum = df[df['crop'] == 'sorghum']['p'].unique()
+
+# unique p values
+sp = df['p'].unique()
+scassava = df[df['crop'] == 'cassava']['p'].unique()
+sgroundnuts = df[df['crop'] == 'groundnuts']['p'].unique()
+smaize = df[df['crop'] == 'maize']['p'].unique()
+ssesame = df[df['crop'] == 'sesame']['p'].unique()
+ssorghum = df[df['crop'] == 'sorghum']['p'].unique()
+
 
 def generate_table(dataframe, max_rows=10):
     return html.Table(
@@ -34,160 +47,170 @@ def generate_table(dataframe, max_rows=10):
     )
 
 
+# Layout
 layout = html.Div([
-    html.H1(children='Economic Agricultural Data'),
-    html.Div([        
-        html.H3('COSTS'),
-        html.H5(id='slider-output-c1'),
-        #html.Div(id='slider-output-c1',style={'float': 'left'}),
-        html.Div(dcc.Slider(
-            id='slider-c1',
-            min=int(dc1.min()),
-            max=int(dc1.max()),
-            marks={int(i):str(i) for i in dc1},
-            step=None,
-            value=0,
-        ),style={'clear': 'both'}),
-        html.H1(' '),
-        
-        html.H5(id='slider-output-c2'),
-        dcc.Slider(
-            id='slider-c2',
-            min=int(dc2.min()),
-            max=int(dc2.max()),
-            marks={int(i):str(i) for i in dc2},
-            step=None,
-            value=0,
-        ),
-        html.H1(' '),
-        
-        html.H3('CROP PRICES'),
-        html.H5(id='slider-output-p-cassava'),
-        dcc.Slider(
-            id='slider-p-cassava',
-            min=int(dcassava.min()),
-            max=int(dcassava.max()),
-            marks={int(i):str(i) for i in dcassava},
-            step=None,
-            value=0,
-        ),
-        html.H1(' '),
-        html.H5(id='slider-output-p-groundnuts'),
-        dcc.Slider(
-            id='slider-p-groundnuts',
-            min=int(dgroundnuts.min()),
-            max=int(dgroundnuts.max()),
-            marks={int(i):str(i) for i in dgroundnuts},
-            step=None,
-            value=0,
-        ),
-        html.H1(' '),
-        html.H5(id='slider-output-p-maize'),
-        dcc.Slider(
-            id='slider-p-maize',
-            min=int(dmaize.min()),
-            max=int(dmaize.max()),
-            marks={int(i):str(i) for i in dmaize},
-            step=None,
-            value=0,
-        ),
-        html.H1(' '),
-        html.H5(id='slider-output-p-sesame'),
-        dcc.Slider(
-            id='slider-p-sesame',
-            min=int(dsesame.min()),
-            max=int(dsesame.max()),
-            marks={int(i):str(i) for i in dsesame},
-            step=None,
-            value=0,
-        ),
-        html.H1(' '),
-        html.H5(id='slider-output-p-sorghum'),
-        dcc.Slider(
-            id='slider-p-sorghum',
-            min=int(dsorghum.min()),
-            max=int(dsorghum.max()),
-            marks={int(i):str(i) for i in dsorghum},
-            step=None,
-            value=0,
-        ),
-        html.H1(' ')                     
-    ],style={'float':'left','width':'20%','margin':'10px'}),
     html.Div([
-        dcc.Tabs(id="tabs", value='tab-5', children=[
-            dcc.Tab(label='Yield', value='tab-1'),
-            dcc.Tab(label='Production', value='tab-2'),
-            dcc.Tab(label='Fertilizer Application', value='tab-3'),
-            dcc.Tab(label='Land Allocation', value='tab-4'),
-            dcc.Tab(label='Data', value='tab-5'),
-        ]),
-        html.Div(id='tabs-content')
-    ],style={'float':'left','width':'75%','margin':'10px'}),
+        html.Div([
+            html.H2('Economic Agricultural Data'),
+            html.H5('Intervetion Variables'),
+            html.Details([
+                html.Summary('Fertilizer Subsidy (%)'),
+                html.Div([
+                    html.Div([
+                        html.Div(['ALL CROPS'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Cassava'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Groundnuts'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Maize'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Sesame'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Sorghum'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row")
+                ])
+            ]),
+            html.H5('Economic Conditions'),
+            html.Details([
+                html.Summary('Crop Price'),
+                html.Div([
+                    html.Div([
+                        html.Div(['ALL CROPS'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-all',
+                            min=int(sp.min()),
+                            max=int(sp.max()),
+                            marks={int(i): str(i) for i in sp},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br(),
+                    html.Div([
+                        html.Div(['Cassava'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-cassava',
+                            min=int(scassava.min()),
+                            max=int(scassava.max()),
+                            marks={int(i): str(i) for i in scassava},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br(),
+                    html.Div([
+                        html.Div(['Groundnuts'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-groundnuts',
+                            min=int(sgroundnuts.min()),
+                            max=int(sgroundnuts.max()),
+                            marks={int(i): str(i) for i in sgroundnuts},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br(),
+                    html.Div([
+                        html.Div(['Maize'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-maize',
+                            min=int(smaize.min()),
+                            max=int(smaize.max()),
+                            marks={int(i): str(i) for i in smaize},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br(),
+                    html.Div([
+                        html.Div(['Sesame'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-sesame',
+                            min=int(ssesame.min()),
+                            max=int(ssesame.max()),
+                            marks={int(i): str(i) for i in ssesame},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br(),
+                    html.Div([
+                        html.Div(['Sorghum'], className="three columns"),
+                        html.Div([dcc.Slider(
+                            id='sp-sorghum',
+                            min=int(ssorghum.min()),
+                            max=int(ssorghum.max()),
+                            marks={int(i): str(i) for i in ssorghum},
+                            step=None,
+                            value=0,
+                        )], className="nine columns"),
+                    ], className="row"), html.Br()
+                ])
+            ]),
+            html.Details([
+                html.Summary('Cost of Production (Non-fertilizer)'),
+                html.Div([
+                    html.Div([
+                        html.Div(['ALL CROPS'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Cassava'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Groundnuts'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Maize'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Sesame'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row"),
+                    html.Div([
+                        html.Div(['Sorghum'], className="three columns"),
+                        html.Div(['Slider'], className="nine columns"),
+                    ], className="row")
+                ])
+            ])
+        ], className="four columns"),
+
+        html.Div([
+            dcc.Tabs(id="tabs", value='tab-1', children=[
+                dcc.Tab(label='Visualize', value='tab-1'),
+                dcc.Tab(label='Model Cag', value='tab-2'),
+                dcc.Tab(label='Data', value='tab-3'),
+            ]),
+            html.Div(id='tabs-content')
+        ], className="eight columns"),
+    ], className="row")
 ])
 
-@app.callback(
-    dash.dependencies.Output('slider-output-c1', 'children'),
-    [dash.dependencies.Input('slider-c1', 'value')])
-def update_output(value):
-    return 'Land Cost: {}'.format(value)
 
-@app.callback(
-    dash.dependencies.Output('slider-output-c2', 'children'),
-    [dash.dependencies.Input('slider-c2', 'value')])
-def update_output(value):
-    return 'Nitrogen Fertilizer Cost: {}'.format(value)
-
-@app.callback(
-    dash.dependencies.Output('slider-output-p-cassava', 'children'),
-    [dash.dependencies.Input('slider-p-cassava', 'value')])
-def update_output(value):
-    return 'Cassava: {}'.format(value)
-
-@app.callback(
-    dash.dependencies.Output('slider-output-p-groundnuts', 'children'),
-    [dash.dependencies.Input('slider-p-groundnuts', 'value')])
-def update_output(value):
-    return 'Groundnuts: {}'.format(value)
-
-@app.callback(
-    dash.dependencies.Output('slider-output-p-maize', 'children'),
-    [dash.dependencies.Input('slider-p-maize', 'value')])
-def update_output(value):
-    return 'Maize: {}'.format(value)
-
-@app.callback(
-    dash.dependencies.Output('slider-output-p-sesame', 'children'),
-    [dash.dependencies.Input('slider-p-sesame', 'value')])
-def update_output(value):
-    return 'Sesame: {}'.format(value)
-
-@app.callback(
-    dash.dependencies.Output('slider-output-p-sorghum', 'children'),
-    [dash.dependencies.Input('slider-p-sorghum', 'value')])
-def update_output(value):
-    return 'Sorghum: {}'.format(value)
-
-
+# Interactive Callback components
 @app.callback(Output('tabs-content', 'children'),
               [Input('tabs', 'value')])
 def render_content(tab):
     if tab == 'tab-1':
         return html.Div([
-            html.H3('Yield')
-            ])
+            html.H3('Data Viz'),
+            html.Div(id='testdiv')
+        ])
     elif tab == 'tab-2':
         return html.Div([
-            html.H3('Production')
+            html.H3('CAG')
         ])
     elif tab == 'tab-3':
-        return html.Div([
-            html.H3('Fertilizer Application')
-        ])
-    elif tab == 'tab-4':
-        return html.Div([
-            html.H3('Land Allocation')
-        ])
-    elif tab == 'tab-5':
         return html.Div([
             html.H3('Data Table'),
             generate_table(df)
