@@ -10,5 +10,5 @@ from viz.app import app
 
 layout = html.Div([
     html.H1(children='Cat Happiness Data'),
-    html.Img(src='/assets/cat.jpg')
+    html.Img(src='/assets/images/cat.jpg')
 ])
