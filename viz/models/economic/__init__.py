@@ -8,12 +8,14 @@ import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
 import base64
+
 from viz.app import app
+
+image_filename = "./viz/assets/images/ConceptMap_Econ.jpg"# replace with your own image
+encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 #Link to Econ Model Data
 df = pd.read_csv('./viz/models/economic/data/results_summary_bycrop_aggregate.csv')
-image_filename = "./viz/assets/images/ConceptMap_Econ.jpg"# replace with your own image
-encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 #unique values for dropdowns
 dp = df['p'].unique()
