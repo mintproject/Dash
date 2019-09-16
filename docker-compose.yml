@@ -10,6 +10,7 @@ services:
     depends_on:
       - app
   app:
+    container_name: flask
     image: mintproject/dash-viz:latest
     build:
       context: .
