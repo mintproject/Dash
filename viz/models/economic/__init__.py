@@ -15,7 +15,7 @@ image_filename = "./viz/assets/images/ConceptMap_Econ.jpg"# replace with your ow
 encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 #Link to Econ Model Data
-df = pd.read_csv('./viz/models/economic/data/results_summary_bycrop_aggregate.csv')
+df = pd.read_csv('./viz/data/economic/results_summary_bycrop_aggregate.csv')
 
 #unique values for dropdowns
 dp = df['p'].unique()
