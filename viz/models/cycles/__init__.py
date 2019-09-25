@@ -19,10 +19,6 @@ planting_dates =dall['planting_date'].unique()
 planting_min = int(planting_dates.min())
 planting_max = int(planting_dates.max())
 
-#Config elements
-app = dash.Dash(__name__)
-app.config.suppress_callback_exceptions = True
-
 # Layout
 app.layout = html.Div([
     html.Div([
@@ -75,6 +71,3 @@ def update_figure(crop,location,year,planting):
         y='yield',
         color='weed_fraction',
     )
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
