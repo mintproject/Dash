@@ -9,6 +9,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
+from viz.app import app
+
 # Data Management Section: import and massage
 econ_data = pd.read_csv('./Data/EconModel/results_summary_bycrop.csv')
 
