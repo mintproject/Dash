@@ -12,7 +12,7 @@ import plotly.express as px
 from viz.app import app
 
 # Data Management Section: import and massage
-econ_data = pd.read_csv('./Data/EconModel/results_summary_bycrop.csv')
+econ_data = pd.read_csv('./viz/data/economic/results_summary_bycrop.csv')
 
 # Create dataframe of parameters by run_ID index
 run_IDs =(econ_data['run_ID'].unique())
@@ -69,11 +69,8 @@ data_graph = pd.merge(econ_data,selected_runs,on='run_ID',how='right')
 col_options = [dict(label=x, value=x) for x in data_graph.columns]
 dimensions = ["x", "y", "color", "facet_col", "facet_row"]
 dgraph = dimensions + ["dd_hover"]
-app = dash.Dash(
-    __name__, external_stylesheets=["https://codepen.io/chriddyp/pen/bWLwgP.css"]
-)
 
-app.layout = html.Div(
+layout = html.Div(
     [
         html.H1("Data Exploration: Scatter Plot"),
         html.Div(

@@ -20,7 +20,7 @@ planting_min = int(planting_dates.min())
 planting_max = int(planting_dates.max())
 
 # Layout
-app.layout = html.Div([
+layout = html.Div([
     html.Div([
         html.Div([
             html.P('Crop:'),
