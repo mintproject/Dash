@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
+from viz.app import app
 
 # Data Management Section: import and massage
 dmaize = pd.read_csv('./viz/data/cycles/maize.csv')
