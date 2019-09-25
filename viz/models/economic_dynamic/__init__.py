@@ -116,4 +116,4 @@ def make_figure(x, y, color, facet_col, facet_row, hover_info):
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True,port=8080)
+    app.run_server(debug=True)
