@@ -6,7 +6,7 @@ env:
   matrix:
   - DOCKER_COMPOSE_VERSION=1.23.2
   global:
-    secure: W5bn9Ua5GDJ2N5vVaDEI0+CdOYuh67hSXx19GA+q5FJkGIseBYxpLkxqJw/GiIqlaqGs2WUZrDGRmPHCesXKMdXLZ7nQ5wSkio7Ls9ysesizY2B6gQ044PhlnvqwnPPB5kD4Hs0Cm5vVr7vyzlyk7Git3ejaQQtn0ithZ+lBQshG7JaCoO8LYNarY3VROiRV66BtkbIVXhRJJcPmAMA154WTXnG4VdRkrJ5/UGxGmIzZ/PCRPQu727yMtXmyNaVfXUD8Gb5RTRQIv2HMB5xGprxwX7WaPOqiG6CxvUk/EvFDiT7TPSsxOkmRZPXD1HGHYCgnYDFoEbJjEJuEL0d3IRRIZXxf9q437uB0oGhoEIXfnD24FYtTfh5wMdg32BKxnbPF5rLVqHvEu/qV9964IfUtJwFHOk8UPmdbh4ZUBrbMYaLYdGfWM6b3MhzxScqW9bVeWk6VEVqdIjLGTp+/BD080U72D1ZvzDSGUJ2dA2JSPxsf3T0Rg6cFTpHliRUsu4WL/IHPG4zJ6nNVg1Pg2AE8VUNx1jdFtb2f0T97oH4D19lKU/dOiz4PADXoJI7fv6li2t0226SKM9Vz4NTxkTEeYGbMOfd+rO/8VlKy7hP5YRprKtv7CeKw6a4BnbLvBqrSZnu6o9Z9M7WR0Tv6UqwPNfDIF7Ks9LYg+c03tnY=
+  - secure: qlrywXYY6Rd7dEMTYeQ0Jgb7wik+sKBADwmr6nx8/pkM/sG4daHSFHBMlS2Sl2Z49i8zoRZtKDqUMBdJ45zZFOIBQHizsqh3gM2Kbj/rEgoiimAEz95XAr8NitDwvZVruRg2DGTG0CI+xIvjYphIsbCzFTonBZkS3uYDGxf6i/19oisTQtQdpk4szyUSshdGx8vZK2SnBbsai9TILWUEjbXB4IhuJLlrifa2lUUKgRo3DeEUa2nNphB/GCs8cFPSZZjv+mLXbHIJs6sed21EW5iKu4vSiR/jDZLBoNZ/UV+S+m4eB1JlIaU1FC0ra02QqKbA2GZ0HmwFbaFwqe2mnxh/O5Op5zVgwBDfyARX6HCmD+g7oLB0qzQ5Suf81Zw9Bo6toEtJYwmLqh1+3/zz3mTpwmGfe0qsV6pWBHHmZT+89Ki5Co4tmglNfMVUaQf+keldL/5XVY6XSQZz+FbV29nyOnaMVXVoYuXY+rLl4iiUWQKvrF2Jl/RYpoTmv+uFp65tE2ZX+Vd5R6uB0ZkFJAcJaeqsObHMEUs0nA/pLGBYiZbzj+V8F0Or89u2msKIDVnK+K7asaK7V6f0bLYbqfmRCZn2aGAb7pTh4ZzuP0MB/oHW0xgDnToP0stNuc/bwK+CviZEv82FiamR0S+wuLT/3XNEslTnw1gDNsJ8CZM=
 services:
 - docker
 before_install:
@@ -26,7 +26,8 @@ before_deploy:
 deploy:
 - provider: script
   skip_cleanup: true
-  script: bash scripts/deploy.sh "/etc/docker/services/dev/viz_dash/docker-compose.yml up -d"
+  script: bash scripts/deploy.sh "/etc/docker/services/dev/viz_dash/docker-compose.yml
+    up -d"
   on:
     all_branches: true
     condition: "$TRAVIS_BRANCH =~ ^(dev)$"
