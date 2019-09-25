@@ -73,12 +73,6 @@ app = dash.Dash(
     __name__, external_stylesheets=["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 )
 
-
-
-#Config elements
-app = dash.Dash(__name__)
-app.config.suppress_callback_exceptions = True
-
 app.layout = html.Div(
     [
         html.H1("Data Exploration: Scatter Plot"),
@@ -115,5 +109,3 @@ def make_figure(x, y, color, facet_col, facet_row, hover_info):
     )
     return fig
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
