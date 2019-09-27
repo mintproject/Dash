@@ -94,7 +94,7 @@ layout = html.Div(
 
 @app.callback(Output("graph", "figure"), ([Input(d, "value") for d in dgraph]))
 def make_figure(x, y, color, facet_col, facet_row, hover_info):
-    fig = px.line(
+    fig = px.scatter(
         data_graph,
         x=x,
         y=y,
