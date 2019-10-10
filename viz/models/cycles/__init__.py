@@ -74,7 +74,9 @@ app.layout = html.Div([
         html.Div([],className="three columns"),
     ],className="row"),
     html.Div([
+        dcc.Loading(id='l-graph',children=[
             html.Div(id='graph')
+        ],type="circle"),
     ],className="row"),
 
 ])
@@ -84,6 +86,7 @@ app.layout = html.Div([
     Output('graph', 'children'),
     [Input('dd_crop', 'value'),Input('dd_year', 'value'),Input('s_planting', 'value')])
 def update_figure(crop,year,planting):
+    time.sleep(50)
     fig_list = []
     filtered_df = dall[(dall.crop == crop)&
         (dall['planting_date_fixed']==True)&(dall.year == year)&(dall.planting_date == planting)]
