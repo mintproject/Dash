@@ -38,7 +38,7 @@ options_list=['end_planting_day','fertilizer_rate','start_planting_day', 'weed_f
    'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap', 'total_n', 'root_n',
    'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage','north','east'
 ]
-selected_options=['north','east','fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield']
+selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','north','east']
 
 # Layout
 app.layout = html.Div([
@@ -72,7 +72,7 @@ app.layout = html.Div([
             html.P('SCALE:'),
             dcc.Dropdown(id='dd_pcscale',
                         options=[dict(label=x, value=x) for x in sorted(options_list)],
-                        value=options_list[0]
+                        value=selected_options[0]
                         ),
         ],className="three columns"),
         html.Div([
@@ -152,6 +152,8 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
     thread = "'" + thread_id + "'"
     #build lists for strings
     select_cols = 'crop'
+    selectlist.append(scale)
+    selectlist = list(sorted(set(selectlist)))    
     if isinstance(selectlist, list):
         scols = "::numeric,".join(list(selectlist))
     if len(selectlist) > 0:
