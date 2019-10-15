@@ -128,29 +128,8 @@ def update_figure(crop,locations,planting,year):
         LEFT JOIN {} outs ON ins."mint-runid" = outs."mint-runid") inout
         WHERE inout.year = {}""".format(ins,crop,planting,location_list,outs,year)
     figdata = pd.DataFrame(pd.read_sql(query,con))
-#     return "{}".format(len(figdata))
-#
-# @app.callback(
-#     Output('graph', 'children'),
-#     [Input('s-inputs','data'),Input('s-otput')]
-#     # [Input('dd_crop', 'value'),Input('dd_year', 'value'),Input('s_planting', 'value')])
-# def update_figure(crop,year,planting):
-
     fig_list = []
     filtered_df = figdata.sort_values('weed_fraction')
-#     columns: threadid
-# mint-runid
-# cycles_weather
-# crop_name
-# end_planting_day
-# end_year
-# fertilizer_rate
-# start_planting_day
-# start_year
-# weed_fraction
-# location
-# grain_yield
-# year
     n=0
     for l in locations:
         n=n+1
