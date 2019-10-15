@@ -18,17 +18,12 @@ import time
 
 ## FOR LIVE
 from viz.app import app
+from viz.app import engine
 ##
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
-
-# set connection string
-user = 'viz'
-password = 'Zc2D63rSbIko6d'
-DATABASE_URI = 'postgres+psycopg2://{}:{}@aws1.mint.isi.edu:5432/publicingestion'.format(user,password)
-con = create_engine(DATABASE_URI)
 
 ## threadid.  Change to get this from url when avilable.
 thread_id = 'b2oR7iGkFEzVgimbNZFO'
