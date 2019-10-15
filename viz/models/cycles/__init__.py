@@ -21,90 +21,145 @@ from viz.app import app
 ##
 
 #styling
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
+'https://codepen.io/chriddyp/pen/brPBPO.css']
 
-# Data Management Section: import and massage,
-### LIVE
-dmaize = pd.read_csv('./viz/data/cycles/maize.csv')
-dsorghum = pd.read_csv('./viz/data/cycles/sorghum.csv')
-### END LIVE
+# set connection string
+user = 'viz'
+password = 'Zc2D63rSbIko6d'
+DATABASE_URI = 'postgres+psycopg2://{}:{}@aws1.mint.isi.edu:5432/publicingestion'.format(user,password)
+con = create_engine(DATABASE_URI)
 
-## LOCAL
-# dmaize = pd.read_csv('Data/cycles/maize.csv')
-# dsorghum = pd.read_csv('Data/cycles/sorghum.csv')
-## END LOCAL
-
-dall = dmaize.append(dsorghum)
-planting_dates =dall['planting_date'].unique()
-planting_min = int(planting_dates.min())
-planting_max = int(planting_dates.max())
-locations = dall['location'].unique()
-
-### *REMOVE* for live
-###Config elements
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# app.config.suppress_callback_exceptions = True
-###
+## threadid.  Change to get this from url when avilable.
+thread_id = 'b2oR7iGkFEzVgimbNZFO'
 
 # Layout
 app.layout = html.Div([
+    dcc.Store(id='s-settings'),
     html.Div([
         html.Div([
-            html.P('Crop:'),
-            dcc.Dropdown(id='dd_crop',
-                options=[dict(label=x, value=x) for x in dall['crop'].unique()],
-                value=dall['crop'].unique()[0]
-                ),
+            html.P('CROP'),
+            dcc.Dropdown(id='dd_crop'),
+            html.P('PLANTING START DATE'),
+            dcc.Dropdown(id='dd_planting'),
         ],className="four columns"),
         html.Div([
-            html.P('Year:'),
-            dcc.Dropdown(id='dd_year',
-                options=[dict(label=x, value=x) for x in dall['year'].unique()],
-                value=dall['year'].unique()[0]
-                #multi=True,
-                #placeholder="Selct years. Shows all if none selected.",
-                ),
-        ],className="four columns"),
+            html.P('LOCATIONS'),
+            dcc.Dropdown(id='dd_locations',multi=True),
+        ],className="eight columns"),
+    ],className="row"),
+    html.Div([
         html.Div([
-                    html.P('Planting date range:'),
-                    dcc.Slider(
-                        id='s_planting',
-                        min = planting_min,
-                        max = planting_max,
-                        marks={int(i):str(i) for i in planting_dates},
-                        step=None,
-                        value = planting_min
-                    ),
-        ],className="four columns"),
-        html.Div([],className="three columns"),
+            html.P('YEAR'),
+        ],className="one columns"),
+        html.Div([
+            html.Div(id='rs_year'),
+        ],className="eleven columns"),
     ],className="row"),
     html.Div([
         dcc.Loading(id='l-graph',children=[
             html.Div(id='graph')
         ],type="circle"),
     ],className="row"),
-
+    html.Div(id='testdiv'),
 ])
 
 # Callbacks
 @app.callback(
-    Output('graph', 'children'),
-    [Input('dd_crop', 'value'),Input('dd_year', 'value'),Input('s_planting', 'value')])
-def update_figure(crop,year,planting):
-    time.sleep(50)
+    [Output('dd_crop','options'),Output('dd_crop','value'),
+    Output('dd_locations','options'),Output('dd_locations','value'),
+    Output('dd_planting','options'), Output('dd_planting','value')
+    ,Output('rs_year','children')
+    ],
+    [Input('s-settings','data')]
+    )
+def set_dropdowns(settings):
+    if thread_id is None or thread_id == '':
+        raise PreventUpdate
+    tablename = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
+    query = """select crop_name, fertilizer_rate, start_planting_day, start_year, end_year, weed_fraction, location
+                from {} WHERE threadid = '{}';""".format(tablename,thread_id)
+    df = pd.DataFrame(pd.read_sql(query,con))
+    crops = df.crop_name.unique()
+    crop_options = [dict(label=x, value=x) for x in sorted(crops)]
+    planting_starts = df.start_planting_day.unique()
+    planting_options =[dict(label=x, value=x) for x in planting_starts]
+    locations = df.location.unique()
+    location_options = [dict(label=x, value=x) for x in sorted(locations)]
+    start_year = df.start_year.min()
+    end_year = df.end_year.max()
+    year_options = [dict(label=x, value=x) for x in range(start_year, end_year)]
+    testdiv = 'years: {} - {}'.format(start_year, end_year)
+    yearslider =dcc.Slider(
+                id='rs_year',
+                min=start_year,
+                max=end_year,
+                marks={i: '{}'.format(i) for i in range(start_year,end_year)},
+                step=None,
+                value=start_year
+            ),
+
+    return [crop_options,crops[0],
+            location_options,locations[0:3],
+            planting_options,planting_starts[0],
+            yearslider]
+
+@app.callback(
+    Output('testdiv','children'),
+    #  Output('graph', 'children'),
+    [Input('dd_crop','value'),Input('dd_locations','value'), Input('dd_planting','value'), Input('rs_year','value')]
+     )
+def update_figure(crop,locations,planting,year):
+    for item in (crop,locations,planting,year):
+        if item is None or item == '':
+            # raise PreventUpdate
+            return "Please ensure all variables are selected"
+    ins = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
+    outs = 'public."cycles-0.9.4-alpha-advanced-pongo-weather_cycles_season"'
+    if isinstance(locations, list):
+        location_list = "','".join(list(locations))
+        location_list = "'" + location_list + "'"
+    else:
+        location_list = "'" + locations + "'"
+    query="""SELECT * FROM (SELECT ins.*, outs.grain_yield, EXTRACT(year FROM TO_DATE(outs.date, 'YYYY-MM-DD')) AS year from
+        (
+        SELECT * FROM {}
+        WHERE crop_name LIKE '{}' AND start_planting_day = {} AND location IN ({})) ins
+        LEFT JOIN {} outs ON ins."mint-runid" = outs."mint-runid") inout
+        WHERE inout.year = {}""".format(ins,crop,planting,location_list,outs,year)
+    figdata = pd.DataFrame(pd.read_sql(query,con))
+#     return "{}".format(len(figdata))
+#
+# @app.callback(
+#     Output('graph', 'children'),
+#     [Input('s-inputs','data'),Input('s-otput')]
+#     # [Input('dd_crop', 'value'),Input('dd_year', 'value'),Input('s_planting', 'value')])
+# def update_figure(crop,year,planting):
+
     fig_list = []
-    filtered_df = dall[(dall.crop == crop)&
-        (dall['planting_date_fixed']==True)&(dall.year == year)&(dall.planting_date == planting)]
-    filtered_df = filtered_df.sort_values('weed_fraction')
+    filtered_df = figdata.sort_values('weed_fraction')
+#     columns: threadid
+# mint-runid
+# cycles_weather
+# crop_name
+# end_planting_day
+# end_year
+# fertilizer_rate
+# start_planting_day
+# start_year
+# weed_fraction
+# location
+# grain_yield
+# year
     n=0
     for l in locations:
         n=n+1
-        ldata = filtered_df[filtered_df.location == l].sort_values('nitrogen_rate')
+        ldata = filtered_df[filtered_df.location == l].sort_values('fertilizer_rate')
         graphid = 'graph-' + str(n)
         fig = px.line(
             ldata,
-            x='nitrogen_rate',
-            y='yield',
+            x='fertilizer_rate',
+            y='grain_yield',
             color='weed_fraction',
             # colorscale="Viridis",
             height = 400,
@@ -132,8 +187,3 @@ def update_figure(crop,year,planting):
                     )],style={'float':'left','width':'50%'})
         fig_list.append(lgraph)
     return fig_list
-
-### REMOVE FOR LIVE
-# if __name__ == '__main__':
-#     app.run_server(debug=True,port=8080)
-###
