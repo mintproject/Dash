@@ -3,8 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from viz.app import app
-from viz.models import *
-import importlib
+from viz.models.test import render as render_test
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -12,16 +11,14 @@ app.layout = html.Div([
 ])
 
 @app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-
-def display_page(pathname):
+              inputs=[
+                  Input('url', component_property='pathname'),
+                  Input('url', component_property='search')
+              ])
+def display_page(pathname, search):
     if pathname:
-        try:
-            print(pathname)
-            model_name = str(pathname).replace('/', '')
-            model = importlib.import_module(".%s" % model_name, 'viz.models')
-            return model.layout
-        except Exception as err:
-            print("Error:", err)
-        
+        model_name = str(pathname).replace('/', '')
+        if model_name == "test":
+            return render_test.layout
+
     return '404'
