@@ -1,19 +1,8 @@
-# dash libs
-from dash.dependencies import Input, Output, State
+from viz.utils import *
 
-# dash components
-import dash_html_components as html
-
-## FOR LIVE
-from viz.app import app
-
-## Parse search
-from viz.utils import parse_search
-
-
-#styling
+# styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
-'https://codepen.io/chriddyp/pen/brPBPO.css']
+                        'https://codepen.io/chriddyp/pen/brPBPO.css']
 
 layout = html.Div([
     html.Div(id='test_thread_id')
@@ -21,12 +10,17 @@ layout = html.Div([
 
 
 @app.callback(Output(component_id="test_thread_id", component_property='children'),
-    inputs=[
-        Input('url', component_property='pathname'),
-        Input('url', component_property='search')
-    ]
-)
-def obtain_thread_id(pathname, search):
+              inputs=[
+                  Input('url', component_property='search')
+              ]
+              )
+def obtain_thread_id(search):
     thread_id = parse_search(search)
-    return thread_id
-
+    if thread_id is None or thread_id == '':
+        raise PreventUpdate
+    tablename = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
+    query = """select crop_name, fertilizer_rate, start_planting_day, start_year, end_year, weed_fraction, location
+                from {} WHERE threadid = '{}';""".format(tablename, thread_id)
+    df = pd.DataFrame(pd.read_sql(query, engine))
+    crops = df.crop_name.unique()
+    return crops
