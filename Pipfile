@@ -27,6 +27,7 @@ Jinja2 = "==2.10.1"
 MarkupSafe = "==1.1.1"
 Werkzeug = "==0.15.6"
 sqlalchemy = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.7"
