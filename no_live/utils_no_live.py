@@ -16,20 +16,14 @@ import plotly.graph_objects as go
 
 ##New Libraries
 from sqlalchemy import create_engine
-import json
-import time
-
-## FOR LIVE
-from viz.app import app
-from viz.app import engine
-
 
 
 def parse_search(search, key):
     query = urlparse(search).query
     query_dict = parse_qs(query)
     if key in query_dict:
-        print("loading {}".format(query_dict[key][0]))
+        print("returing {}".format(query_dict[key][0]))
+
         return query_dict[key][0]
     return None
 

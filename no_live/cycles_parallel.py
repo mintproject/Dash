@@ -1,4 +1,5 @@
 # dash libs
+# import collections
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
@@ -19,29 +20,46 @@ import dash_table as dt
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-
-# FOR LIVE
-from viz.app import app
-# FOR LIVE: IMPORT DATABASE
-from viz.app import engine
-#
+from utils_no_live import parse_search
+## FOR LIVE
+# from viz.app import app
+## FOR LIVE: IMPORT DATABASE
+#from viz.app import engine
+##
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
+# set connection string. REMOVE FOR LIVE
+user = 'viz'
+password = 'Zc2D63rSbIko6d'
+DATABASE_URI = 'postgres+psycopg2://{}:{}@aws1.mint.isi.edu:5432/publicingestion'.format(user,password)
+con = create_engine(DATABASE_URI)
+
 ## threadid.  Change to get this from url when avilable.
 thread_id = 'b2oR7iGkFEzVgimbNZFO'
 
-# Options lists for cycles.  Move to callback when metadata available
 options_list=['end_planting_day','fertilizer_rate','start_planting_day', 'weed_fraction', 'total_biomass', 'root_biomass',
    'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap', 'total_n', 'root_n',
    'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage','north','east'
 ]
 selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','north','east']
 
+def get_numeric_columns(dataframe):
+    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    numeric_cols =  dataframe.select_dtypes(include=numerics).columns
+    return numeric_cols
+
+## LOCAL ONLY
+##Config elements
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.config.suppress_callback_exceptions = True
+##
+
 # Layout
 app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
     html.H3('Parallel Coordinates Graph'),
     dcc.Store(id='s-settings'),
     dcc.Store(id='s-sqldata'),
@@ -99,9 +117,13 @@ app.layout = html.Div([
     Output('dd_planting','options'), Output('dd_planting','value')
     ,Output('rs_year','children')
     ],
-    [Input('s-settings','data')]
+    [
+        Input('s-settings','data'),
+        Input('url', component_property='search')
+     ]
     )
-def set_dropdowns(settings):
+def set_dropdowns(settings,search):
+    thread_id = parse_search(search, "thread_id")
     if thread_id is None or thread_id == '':
         raise PreventUpdate
     tablename = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
@@ -136,6 +158,7 @@ def set_dropdowns(settings):
 
 @app.callback(
     Output('testdiv','children'),
+    # Output('sqldata','data')
     [Input('btn-pc', 'n_clicks')],
     [State('dd_crop','value'),State('dd_locations','value'), State('dd_planting','value'), State('rs_year','value'),
     State('dd_locations','options'),State('rs_year','min'),State('rs_year','max'),State('dd_pcoptions','value'),State('dd_pcscale','value')]
@@ -153,17 +176,27 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
     #build lists for strings
     select_cols = 'crop'
     selectlist.append(scale)
-    selectlist = list(sorted(set(selectlist)))    
+    selectlist = list(sorted(set(selectlist)))
     if isinstance(selectlist, list):
         scols = "::numeric,".join(list(selectlist))
     if len(selectlist) > 0:
         select_cols = select_cols + ', ' + scols + '::numeric'
+
+    # crop_list=[]
+    # if isinstance(crop, list):
+    #     crop_list = "','".join(list(crop))
+    # crop_list = "'" + crop_list + "'"
+
     #build lists for ints
     planting_list = ",".join(str(x) for x in list(planting))
+    #if locations selected < total locations, add locations clause
+    # locationclause = ''
+    # if len(locations) != len(locationoptions):
     locations_list=[]
     if isinstance(locations, list):
         locations_list = "','".join(list(locations))
     locations_list = "'" + locations_list + "'"
+        # locationclause = ' AND location IN  ({}) '.format(locations_list)
     query="""SELECT {}
              FROM
             (SELECT *
@@ -181,9 +214,27 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
             WHERE year >= {} and year <= {}
             ) outs
             ON ins."mint-runid" = outs."mint-runid" """.format(select_cols,ins,thread,crop,planting_list,locations_list,outs,year[0],year[1])
-    figdata = pd.DataFrame(pd.read_sql(query,con))
+    pcdata = pd.DataFrame(pd.read_sql(query,con))
+    # contents=[]
+    # for c in crop:
+    # graphid = 'graph-' + c
+    # c = crop[0]
+    figdata = pcdata
     fig = px.parallel_coordinates(figdata, color=scale,
-                            color_continuous_midpoint = figdata.loc[:,scale].median(),
-                             color_continuous_scale=px.colors.diverging.Tealrose)
+                            # color_continuous_midpoint = figdata.loc[:,scale].median(),
+                            #  color_continuous_scale=px.colors.diverging.Tealrose
+                             )
     pc = dcc.Graph(id='graphid',figure=fig)
+    # contents.append(pc)
     return pc
+    # return contents
+    # return "{}".format(contents)
+    # pcols = figdata.columns.values.tolist()
+    # return "{}".format(query)
+    # return "{},{}".format(c,figdata.head(5))
+
+
+## LOCAL ONLY
+if __name__ == '__main__':
+    app.run_server(debug=True,port=8040)
+##
