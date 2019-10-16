@@ -39,7 +39,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 # ##
 
 # Layout
-app.layout = html.Div([
+layout = html.Div([
     html.Div(id='testdiv'),
     dcc.Store(id='s-cols'),
     dcc.Store(id='s-data'),
@@ -85,7 +85,7 @@ app.layout = html.Div([
                     html.Div([dcc.Dropdown(id='dd-hover',multi=True)]),
                 ],className='three columns'),
                 html.Div([
-                    dcc.Graph(id="graph")
+                    dcc.Graph(id="graph_upload")
                 ],className="nine columns")
             ],className='row')
         ]),
@@ -153,7 +153,7 @@ for dd in scatter_dropdowns:
         col_options = [dict(label=x, value=x) for x in cols]
         return col_options
 
-@app.callback(Output("graph", "figure"),
+@app.callback(Output("graph_upload", "figure"),
                 [Input('dd-x','value'),Input('dd-y','value'),Input('dd-color','value'),
                 Input('dd-facet_col','value'),Input('dd-facet_row','value'),Input('dd-hover','value')]
                 ,[State('s-data','data')])
