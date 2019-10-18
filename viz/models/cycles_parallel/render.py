@@ -14,7 +14,7 @@ options_list=['end_planting_day','fertilizer_rate','start_planting_day', 'weed_f
    'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap', 'total_n', 'root_n',
    'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage','latitude','longitude'
 ]
-selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','latitude','longitude'
+selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','latitude','longitude']
 
 # Layout
 def generate_layout(thread_id):
