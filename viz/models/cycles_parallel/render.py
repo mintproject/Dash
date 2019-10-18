@@ -135,8 +135,8 @@ def set_dropdowns(settings,thread_id):
     # Output('sqldata','data')
     [Input('btn-pc', 'n_clicks')],
     [State('dd_crop','value'),State('dd_locations','value'), State('dd_planting','value'), State('rs_year','value'),
-    State('dd_locations','options'),State('rs_year','min'),State('rs_year','max'),State('dd_pcoptions','value'),State('dd_pcscale','value')]
-     ,State(component_id='thread_id', component_property='value'))
+    State('dd_locations','options'),State('rs_year','min'),State('rs_year','max'),State('dd_pcoptions','value'),State('dd_pcscale','value')
+     ,State(component_id='thread_id', component_property='value')])
 def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,yearmax,selectlist,scale,thread_id):
     if n_clicks is None:
         raise PreventUpdate
