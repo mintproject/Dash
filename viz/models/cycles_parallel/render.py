@@ -7,17 +7,14 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 #pointless comment to force rebuild
 
 ## threadid.  Change to get this from url when avilable.
-thread_id = 'b2oR7iGkFEzVgimbNZFO'
+#thread_id = 'b2oR7iGkFEzVgimbNZFO'
 
 # Options lists for cycles.  Move to callback when metadata available
-options_list = ['end_planting_day', 'fertilizer_rate', 'start_planting_day', 'weed_fraction', 'total_biomass',
-                'root_biomass',
-                'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap',
-                'total_n', 'root_n',
-                'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage', 'north',
-                'east'
-                ]
-selected_options = ['fertilizer_rate', 'start_planting_day', 'weed_fraction', 'grain_yield', 'north', 'east']
+options_list=['end_planting_day','fertilizer_rate','start_planting_day', 'weed_fraction', 'total_biomass', 'root_biomass',
+   'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap', 'total_n', 'root_n',
+   'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage','latitude','longitude'
+]
+selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','latitude','longitude'
 
 # Layout
 def generate_layout(thread_id):
