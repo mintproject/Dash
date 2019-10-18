@@ -85,15 +85,19 @@ def generate_layout(thread_id):
     [
         Input('s-settings','data'),
         Input(component_id='thread_id', component_property='value')
-
     ]
     )
 def set_dropdowns(settings,thread_id):
     if thread_id is None or thread_id == '':
         raise PreventUpdate
-    tablename = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
-    query = """select crop_name, fertilizer_rate, start_planting_day, start_year, end_year, weed_fraction, location
-                from {} WHERE threadid = '{}';""".format(tablename,thread_id)
+    tablename = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
+                FROM
+                (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+                FROM threads_inputs where threadid = '{}') ti
+                INNER JOIN
+                (select * from {} where threadid = '{}') i
+                ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
     df = pd.DataFrame(pd.read_sql(query,con))
 
     #dropdown options
@@ -130,16 +134,16 @@ def set_dropdowns(settings,thread_id):
     [Input('btn-pc', 'n_clicks')],
     [State('dd_crop','value'),State('dd_locations','value'), State('dd_planting','value'), State('rs_year','value'),
     State('dd_locations','options'),State('rs_year','min'),State('rs_year','max'),State('dd_pcoptions','value'),State('dd_pcscale','value')]
-     )
-def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,yearmax,selectlist,scale):
+     ,State(component_id='thread_id', component_property='value'))
+def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,yearmax,selectlist,scale,thread_id):
     if n_clicks is None:
         raise PreventUpdate
     for item in (crop,locations,planting,year):
         if item is None or item == '':
             # raise PreventUpdate
             return "Please ensure all variables are selected"
-    ins = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
-    outs = 'public."cycles-0.9.4-alpha-advanced-pongo-weather_cycles_season"'
+    ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season outs'
     thread = "'" + thread_id + "'"
     #build lists for strings
     select_cols = 'crop'
@@ -166,14 +170,20 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
     locations_list = "'" + locations_list + "'"
         # locationclause = ' AND location IN  ({}) '.format(locations_list)
     query="""SELECT {}
-             FROM
-            (SELECT *
-            ,(split_part(location, 'Nx', 1))::numeric AS north ,(split_part(split_part(location, 'Nx', 2),'E',1))::numeric AS east
-            FROM {}
-            WHERE threadid = {}
-            AND crop_name LIKE '{}'
-            AND start_planting_day IN ({})
-            AND location in ({})
+              FROM
+            (
+            SELECT * FROM 
+            (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+              FROM threads_inputs 
+              where threadid =  '{}' ) ti
+              INNER JOIN
+              (select * from {} 
+                where threadid = '{}' 
+                AND crop_name LIKE '{}'
+                AND start_planting_day IN ({})
+                ) i
+              ON ti.id = i.cycles_weather
+              AND ti.location in ({})  
             ) ins
             INNER JOIN
             (Select * from
@@ -181,7 +191,7 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
             FROM {}) o
             WHERE year >= {} and year <= {}
             ) outs
-            ON ins."mint-runid" = outs."mint-runid" """.format(select_cols,ins,thread,crop,planting_list,locations_list,outs,year[0],year[1])
+            ON ins.mint_runid = outs.mint_runid """.format(select_cols,thread_id,ins,thread_id,crop,planting_list,locations_list,outs,year[0],year[1])
     pcdata = pd.DataFrame(pd.read_sql(query,con))
     # contents=[]
     # for c in crop:
