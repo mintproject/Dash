@@ -128,11 +128,11 @@ def update_figure(crop, locations, planting, year):
             WHERE inout.year = {}""".format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
-    filtered_df = figdata.sort_values('weed_fraction')
+    filtered_df = figdata.sort_values(by=['fertilizer_rate', 'weed_fraction'])
     n = 0
     for l in locations:
         n = n + 1
-        ldata = filtered_df[filtered_df.location == l].sort_values('fertilizer_rate')
+        ldata = filtered_df[filtered_df.location == l]
         graphid = 'graph-' + str(n)
         fig = px.line(
             ldata,
