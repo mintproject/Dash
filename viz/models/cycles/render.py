@@ -60,9 +60,14 @@ def set_dropdowns(settings, cycles_thread_id):
     thread_id = cycles_thread_id
     if thread_id is None or thread_id == '':
         raise PreventUpdate
-    tablename = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
-    query = """select crop_name, fertilizer_rate, start_planting_day, start_year, end_year, weed_fraction, location
-                from {} WHERE threadid = '{}';""".format(tablename, thread_id)
+    tablename = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
+                FROM
+                (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+                FROM threads_inputs where threadid = '{}') ti
+                INNER JOIN
+                (select * from {} where threadid = '{}') i
+                ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
     df = pd.DataFrame(pd.read_sql(query, con))
     crops = df.crop_name.unique()
     crop_options = [dict(label=x, value=x) for x in sorted(crops)]
@@ -100,19 +105,27 @@ def update_figure(crop, locations, planting, year):
         if item is None or item == '':
             # raise PreventUpdate
             return "Please ensure all variables are selected"
-    ins = 'public."cycles-0.9.4-alpha-advanced-pongo-weather"'
-    outs = 'public."cycles-0.9.4-alpha-advanced-pongo-weather_cycles_season"'
+    ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season outs'
     if isinstance(locations, list):
         location_list = "','".join(list(locations))
         location_list = "'" + location_list + "'"
     else:
         location_list = "'" + locations + "'"
-    query = """SELECT * FROM (SELECT ins.*, outs.grain_yield, EXTRACT(year FROM TO_DATE(outs.date, 'YYYY-MM-DD')) AS year from
-        (
-        SELECT * FROM {}
-        WHERE crop_name LIKE '{}' AND start_planting_day = {} AND location IN ({})) ins
-        LEFT JOIN {} outs ON ins."mint-runid" = outs."mint-runid") inout
-        WHERE inout.year = {}""".format(ins, crop, planting, location_list, outs, year)
+    query="""SELECT * FROM (SELECT ins.*, outs.grain_yield, EXTRACT(year FROM TO_DATE(outs.date, 'YYYY-MM-DD')) AS year from
+            (
+            SELECT * FROM
+                ((Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+                FROM threads_inputs where threadid = '{}') ti
+                INNER JOIN
+                (select * from {} where threadid = '{}') i
+                ON ti.id = i.cycles_weather)
+            WHERE crop_name LIKE '{}' AND start_planting_day = {}
+            AND location IN ({})
+            ) ins
+            LEFT JOIN {}
+            ON ins.mint_runid = outs.mint_runid) inout
+            WHERE inout.year = {}""".format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
     filtered_df = figdata.sort_values('weed_fraction')
