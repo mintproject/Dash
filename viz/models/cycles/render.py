@@ -110,7 +110,7 @@ def update_figure(crop, locations, planting, year):
             # raise PreventUpdate
             return "Please ensure all variables are selected"
     ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
-    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season outs'
+    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season'
     if isinstance(locations, list):
         location_list = "','".join(list(locations))
         location_list = "'" + location_list + "'"
