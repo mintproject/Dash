@@ -127,9 +127,9 @@ def update_figure(crop, locations, planting, year):
             WHERE crop_name LIKE '{}' AND start_planting_day = {}
             AND location IN ({})
             ) ins
-            LEFT JOIN {}
+            INNER JOIN {} outs
             ON ins.mint_runid = outs.mint_runid) inout
-            WHERE inout.year = {}""".format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
+            WHERE inout.year = {} """.format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
     filtered_df = figdata.sort_values(by=['fertilizer_rate', 'weed_fraction'])
