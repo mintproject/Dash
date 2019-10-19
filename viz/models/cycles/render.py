@@ -7,8 +7,12 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 ## threadid.  Change to get this from url when avilable.
 # hard code if needed thread_id = 'b2oR7iGkFEzVgimbNZFO'
 
+thread_id = ""
+
 # Layout
-def generate_layout(thread_id):
+def generate_layout(cycles_thread_id):
+    global thread_id
+    thread_id = cycles_thread_id
     return html.Div([
         dcc.Store(id='s-settings'),
         html.Div([
