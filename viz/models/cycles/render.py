@@ -10,9 +10,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 thread_id = ""
 
 # Layout
-def generate_layout(cycles_thread_id):
-    global thread_id
-    thread_id = cycles_thread_id
+def generate_layout(thread_id):
     return html.Div([
         dcc.Store(id='s-settings'),
         html.Div([
