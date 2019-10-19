@@ -51,8 +51,7 @@ def generate_layout(thread_id):
     [Output('dd_crop_cylces', 'options'), Output('dd_crop_cylces', 'value'),
      Output('dd_locations_cylces', 'options'), Output('dd_locations_cylces', 'value'),
      Output('dd_planting_cylces', 'options'), Output('dd_planting_cylces', 'value')
-        , Output('rs_year_cylces', 'children'),
-    Output('testvid_cylces', 'children')
+        , Output('rs_year_cylces', 'children')
      ],
      [
 #         Input('s-settings', 'data'),
