@@ -51,14 +51,15 @@ def generate_layout(thread_id):
     [Output('dd_crop_cylces', 'options'), Output('dd_crop_cylces', 'value'),
      Output('dd_locations_cylces', 'options'), Output('dd_locations_cylces', 'value'),
      Output('dd_planting_cylces', 'options'), Output('dd_planting_cylces', 'value')
-        , Output('rs_year_cylces', 'children')
+        , Output('rs_year_cylces', 'children'),
+    Output('testvid_cylces', 'children')
      ],
-    [
-        Input('s-settings', 'data'),
+     [
+#         Input('s-settings', 'data'),
         Input(component_id='cycles_thread_id', component_property='value')
     ]
 )
-def set_dropdowns(settings, cycles_thread_id):
+def set_dropdowns(cycles_thread_id):
     thread_id = cycles_thread_id
     if thread_id is None or thread_id == '':
         raise PreventUpdate
@@ -71,6 +72,13 @@ def set_dropdowns(settings, cycles_thread_id):
                 (select * from {} where threadid = '{}') i
                 ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
     df = pd.DataFrame(pd.read_sql(query, con))
+    if df.empty:      
+        empty_data_options = [{'label':'Waiting on Data Ingestion','value':'waiting'}]
+        emptymsg = 'Please Wait for Data Ingestion'
+        return [empty_data_options, empty_data_options[0],
+            empty_data_options, empty_data_options[0],
+            empty_data_options, empty_data_options[0],
+            emptymsg]     
     crops = df.crop_name.unique()
     crop_options = [dict(label=x, value=x) for x in sorted(crops)]
     planting_starts = df.start_planting_day.unique()
@@ -88,8 +96,7 @@ def set_dropdowns(settings, cycles_thread_id):
         marks={i: '{}'.format(i) for i in range(start_year, end_year)},
         step=None,
         value=start_year
-    ),
-
+    )
     return [crop_options, crops[0],
             location_options, locations[0:3],
             planting_options, planting_starts[0],
@@ -107,7 +114,7 @@ def update_figure(crop, locations, planting, year,thread_id):
     for item in (crop, locations, planting, year):
         if item is None or item == '':
             # raise PreventUpdate
-            return "Please ensure all variables are selected"
+            return "Please enter a threadID to load data"
     ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
     outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season'
     if isinstance(locations, list):
