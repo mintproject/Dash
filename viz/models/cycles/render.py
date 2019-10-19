@@ -102,9 +102,10 @@ def set_dropdowns(settings, cycles_thread_id):
     Output('testvid_cylces', 'children'),
     #  Output('graph', 'children'),
     [Input('dd_crop_cylces', 'value'), Input('dd_locations_cylces', 'value'), Input('dd_planting_cylces', 'value'),
-     Input('rs_year_cylces', 'value')]
+     Input('rs_year_cylces', 'value')],
+[State('cycles_thread_id','value')]
 )
-def update_figure(crop, locations, planting, year):
+def update_figure(crop, locations, planting, year,thread_id):
     for item in (crop, locations, planting, year):
         if item is None or item == '':
             # raise PreventUpdate
