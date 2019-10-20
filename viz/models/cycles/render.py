@@ -113,8 +113,8 @@ def update_figure(crop, locations, planting, year,thread_id):
   if thread_id is None or item == '':
       return "Please enter a threadID to load data"
   for item in (crop, locations, planting, year):
-        if item is None or item == '':
-            return "Please make a selection for all inputs"
+    if item is None or item == '':
+        return "Please make a selection for all inputs"
     ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
     outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season'
     if isinstance(locations, list):
