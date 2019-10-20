@@ -110,7 +110,7 @@ def set_dropdowns(cycles_thread_id):
 [State('cycles_thread_id','value')]
 )
 def update_figure(crop, locations, planting, year,thread_id):
-  if thread_id is None or item == '':
+  if thread_id is None or thread_id == '':
       return "Please enter a threadID to load data"
   for item in (crop, locations, planting, year):
     if item is None or item == '':
