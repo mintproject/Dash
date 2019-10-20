@@ -10,21 +10,6 @@ env:
   global:
   - secure: qlrywXYY6Rd7dEMTYeQ0Jgb7wik+sKBADwmr6nx8/pkM/sG4daHSFHBMlS2Sl2Z49i8zoRZtKDqUMBdJ45zZFOIBQHizsqh3gM2Kbj/rEgoiimAEz95XAr8NitDwvZVruRg2DGTG0CI+xIvjYphIsbCzFTonBZkS3uYDGxf6i/19oisTQtQdpk4szyUSshdGx8vZK2SnBbsai9TILWUEjbXB4IhuJLlrifa2lUUKgRo3DeEUa2nNphB/GCs8cFPSZZjv+mLXbHIJs6sed21EW5iKu4vSiR/jDZLBoNZ/UV+S+m4eB1JlIaU1FC0ra02QqKbA2GZ0HmwFbaFwqe2mnxh/O5Op5zVgwBDfyARX6HCmD+g7oLB0qzQ5Suf81Zw9Bo6toEtJYwmLqh1+3/zz3mTpwmGfe0qsV6pWBHHmZT+89Ki5Co4tmglNfMVUaQf+keldL/5XVY6XSQZz+FbV29nyOnaMVXVoYuXY+rLl4iiUWQKvrF2Jl/RYpoTmv+uFp65tE2ZX+Vd5R6uB0ZkFJAcJaeqsObHMEUs0nA/pLGBYiZbzj+V8F0Or89u2msKIDVnK+K7asaK7V6f0bLYbqfmRCZn2aGAb7pTh4ZzuP0MB/oHW0xgDnToP0stNuc/bwK+CviZEv82FiamR0S+wuLT/3XNEslTnw1gDNsJ8CZM=
 
-services:
-- docker
-
-before_deploy:
-- docker-compose build
-- docker-compose push
-- echo $key_pass | gpg --passphrase-fd 0 id_travis_rsa.gpg
-- eval "$(ssh-agent -s)"
-- chmod 600 id_travis_rsa
-- ssh-add id_travis_rsa
-
-deploy:
-- provider: script
-  skip_cleanup: true
-  script: bash scripts/deploy.sh "/etc/docker/services/dev/viz_dash/docker-compose.yml"
-  on:
-    all_branches: true
-    condition: "$TRAVIS_BRANCH =~ ^(dev)$"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
