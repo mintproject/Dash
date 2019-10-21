@@ -1,8 +1,18 @@
+## FOR LIVE
 from viz.utils import *
-
-# styling
+##
+#styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
-                        'https://codepen.io/chriddyp/pen/brPBPO.css']
+'https://codepen.io/chriddyp/pen/brPBPO.css']
+
+## LOCAL ONLY
+
+# ##Config elements
+# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# app.config.suppress_callback_exceptions = True
+# ##
+
+thread_id = ""
 
 ## LAYOUT ##
 def generate_layout():
@@ -11,15 +21,28 @@ def generate_layout():
     except NameError:
         thread_id = ''
         # 'b2oR7iGkFEzVgimbNZFO'
-# ADD Functions to load data from thread
-    # sdata=''
-    # if thread_id != '':
-    #     sdata = 'Got a thread here!'
+    sdata=''
+    if thread_id != '':
+        # if there is a thread, load the data into the data store
+        # tablename = 'cycles_0_9_4_alpha__runs'
+        # query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
+        #         FROM
+        #         (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+        #         FROM threads_inputs where threadid = '{}') ti
+        #         INNER JOIN
+        #         (select * from {} where threadid = '{}') i
+        #         ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
+        # df = pd.DataFrame(pd.read_sql(query,con))
+        sdata = 'Got a thread here!'
     return html.Div([
         dcc.Store(id='s-cols'),
         dcc.Store(id='s-data'),
         dcc.Tabs(id="tabs", children=[
             dcc.Tab(label='Load Data', children=[
+                html.Div([
+                    html.Label('Thread id'),
+                    dcc.Input(id='cycles_thread_id', value=thread_id, type='text', style={"width": "33%"}),
+                ]),
                 html.Div(check_data(thread_id)),
             ]),
             dcc.Tab(label='Scatter', children=[
@@ -37,6 +60,7 @@ def generate_layout():
                         dcc.Dropdown(id='dd-facet_row'),
                         html.P(['On Hover show: ']),
                         html.Div([dcc.Dropdown(id='dd-hover',multi=True)]),
+                        html.Div([html.Button('Build Graph', id='btn-scatter')]),
                     ],className='three columns'),
                     html.Div([
                         dcc.Graph(id='graph-scatter')
@@ -149,3 +173,11 @@ def make_scatter(x, y, color, facet_col, facet_row, hover_info,sdata):
         hover_data = hover_info,
     )
     return fig
+
+
+# app.layout = generate_layout
+#
+# ## LOCAL ONLY
+# if __name__ == '__main__':
+#     app.run_server(debug=True,port=8030)
+# ##
