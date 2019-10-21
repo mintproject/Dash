@@ -10,13 +10,16 @@ from viz.models.economic.render import layout as layout_economic
 from viz.models.economic_dynamic.render import layout as layout_economic_dynamic
 from viz.models.upload.render import layout as layout_upload
 
-CYCLES_PARALLEL = "cycles_parallel"
 THREAD_ID = "thread_id"
-CYCLES = "cycles"
 
+#Render format: pass in threadid
+CYCLES_PARALLEL = "cycles_parallel"
+CYCLES = "cycles"
+UPLOAD = "upload"
+
+# Hard Coded Data
 ECONOMIC = "economic"
 ECONOMIC_DYNAMIC = "economic_dynamic"
-UPLOAD = "upload"
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -42,6 +45,6 @@ def display_page(pathname, search):
         elif model_name == ECONOMIC_DYNAMIC:
             return layout_economic
         elif model_name == UPLOAD:
-            return layout_upload
+            return render_upload.generate_layout(thread_id)
 
     return '404'
