@@ -89,7 +89,7 @@ def generate_layout(thread_id):
 def set_dropdowns(settings,thread_id):
     if thread_id is None or thread_id == '':
         raise PreventUpdate
-    tablename = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    tablename = 'cycles_0_9_4_alpha_runs'
     query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
                 FROM
                 (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
@@ -141,8 +141,8 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
         if item is None or item == '':
             # raise PreventUpdate
             return "Please ensure all variables are selected"
-    ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
-    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season outs'
+    ins = 'cycles_0_9_4_alpha_runs'
+    outs = 'cycles_0_9_4_alpha_cycles_season'
     thread = "'" + thread_id + "'"
     #build lists for strings
     select_cols = 'crop'
