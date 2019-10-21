@@ -142,7 +142,7 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
             # raise PreventUpdate
             return "Please ensure all variables are selected"
     ins = 'cycles_0_9_4_alpha_runs'
-    outs = 'cycles_0_9_4_alpha_cycles_season outs'
+    outs = 'cycles_0_9_4_alpha_cycles_season'
     thread = "'" + thread_id + "'"
     #build lists for strings
     select_cols = 'crop'
