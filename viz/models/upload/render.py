@@ -1,6 +1,7 @@
 ## FOR LIVE
 from viz.utils import *
 ##
+
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
