@@ -62,7 +62,7 @@ def set_dropdowns(cycles_thread_id):
     thread_id = cycles_thread_id
     if thread_id is None or thread_id == '':
         raise PreventUpdate
-    tablename = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    tablename = 'cycles_0_9_4_alpha_runs'
     query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
                 FROM
                 (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
@@ -115,8 +115,8 @@ def update_figure(crop, locations, planting, year,thread_id):
   for item in (crop, locations, planting, year):
     if item is None or item == '':
         return "Please make a selection for all inputs"
-    ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
-    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season'
+    ins = 'cycles_0_9_4_alpha_runs'
+    outs = 'cycles_0_9_4_alpha_cycles_season'
     if isinstance(locations, list):
         location_list = "','".join(list(locations))
         location_list = "'" + location_list + "'"
