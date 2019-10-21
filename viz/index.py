@@ -4,11 +4,14 @@ from dash.dependencies import Input, Output
 from viz.utils import  parse_search
 from viz.app import app
 
-from viz.models.cycles_parallel import render as render_cycles_parallel
-from viz.models.cycles import render as render_cycles
+# Hard Coded models
 from viz.models.economic.render import layout as layout_economic
 from viz.models.economic_dynamic.render import layout as layout_economic_dynamic
-from viz.models.upload.render import layout as layout_upload
+
+# Models to take Thread ID
+from viz.models.cycles_parallel import render as render_cycles_parallel
+from viz.models.cycles import render as render_cycles
+from viz.models.upload import render as render_upload
 
 THREAD_ID = "thread_id"
 
