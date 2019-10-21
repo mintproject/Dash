@@ -58,11 +58,10 @@ def generate_layout(thread_id):
         Input(component_id='cycles_thread_id', component_property='value')
     ]
 )
-def set_dropdowns(cycles_thread_id):
-    thread_id = cycles_thread_id
+def set_dropdowns(thread_id):
     if thread_id is None or thread_id == '':
         raise PreventUpdate
-    tablename = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
+    tablename = 'cycles_0_9_4_alpha_runs'
     query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
                 FROM
                 (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
@@ -70,6 +69,7 @@ def set_dropdowns(cycles_thread_id):
                 INNER JOIN
                 (select * from {} where threadid = '{}') i
                 ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
+                
     df = pd.DataFrame(pd.read_sql(query, con))
     if df.empty:      
         empty_data_options = [{'label':'Waiting on Data Ingestion','value':'waiting'}]
@@ -112,11 +112,18 @@ def set_dropdowns(cycles_thread_id):
 def update_figure(crop, locations, planting, year,thread_id):
   if thread_id is None or thread_id == '':
       return "Please enter a threadID to load data"
+  if year is None or year == '':
+      return "Loading..."
+  if planting is None or planting == '':
+      return "Loading..."
+  if locations is None or locations == '':
+      return "Loading..."
+
   for item in (crop, locations, planting, year):
     if item is None or item == '':
         return "Please make a selection for all inputs"
-    ins = 'cycles_0_9_4_alpha_advanced_pongo_weather_runs'
-    outs = 'cycles_0_9_4_alpha_advanced_pongo_weather_cycles_season'
+    ins = 'cycles_0_9_4_alpha_runs'
+    outs = 'cycles_0_9_4_alpha_cycles_season'
     if isinstance(locations, list):
         location_list = "','".join(list(locations))
         location_list = "'" + location_list + "'"
@@ -136,6 +143,7 @@ def update_figure(crop, locations, planting, year,thread_id):
             INNER JOIN {} outs
             ON ins.mint_runid = outs.mint_runid) inout
             WHERE inout.year = {} """.format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
+
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
     filtered_df = figdata.sort_values(by=['fertilizer_rate', 'weed_fraction'])
