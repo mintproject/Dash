@@ -5,15 +5,6 @@ from viz.utils import *
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
-## LOCAL ONLY
-
-# ##Config elements
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# app.config.suppress_callback_exceptions = True
-# ##
-
-thread_id = ""
-
 ## LAYOUT ##
 def generate_layout():
     try:
@@ -174,10 +165,3 @@ def make_scatter(x, y, color, facet_col, facet_row, hover_info,sdata):
     )
     return fig
 
-
-# app.layout = generate_layout
-#
-# ## LOCAL ONLY
-# if __name__ == '__main__':
-#     app.run_server(debug=True,port=8030)
-# ##
