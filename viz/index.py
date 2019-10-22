@@ -13,6 +13,7 @@ from viz.models.cycles_parallel import render as render_cycles_parallel
 from viz.models.cycles import render as render_cycles
 from viz.models.upload import render as render_upload
 from viz.models.scatter_plot import render as render_scatter_plot
+from viz.models.map_point import render as render_map_point
 
 THREAD_ID = "thread_id"
 
@@ -20,8 +21,8 @@ THREAD_ID = "thread_id"
 CYCLES_PARALLEL = "cycles_parallel"
 CYCLES = "cycles"
 UPLOAD = "upload"
-
 SCATTER_PLOT = "scatter_plot"
+MAP_POINT = "map_point"
 
 # Hard Coded Data
 ECONOMIC = "economic"
@@ -54,5 +55,7 @@ def display_page(pathname, search):
             return render_upload.generate_layout(thread_id)
         elif model_name == SCATTER_PLOT:
             return render_scatter_plot.generate_layout(thread_id)
+        elif model_name == MAP_POINT:
+            return render_map_point.generate_layout(thread_id)        
 
     return '404'
