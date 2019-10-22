@@ -1,17 +1,17 @@
 ## FOR LIVE
 from viz.utils import *
-
+##
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
-##
 
 # Mapping MAPBOX_APIKEY
 MAPBOX_APIKEY = "pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazE3MHZ4Z3UxYmY2M2RvM2Q0YmhzNnQ4In0.ero49roJ3zegSqMEhx7E4Q"
-thread_id=''
+
 ## LAYOUT ##
 # Layout
 def generate_layout(thread_id):
+    # load_spatial_data(thread_id)
     return html.Div([
         dcc.Store(id='e-cols'),
         dcc.Store(id='e-data'),
@@ -19,7 +19,7 @@ def generate_layout(thread_id):
             html.Label('Thread id'),
             dcc.Input(id='thread_id', value=thread_id, type='text', style={"width": "33%"}),
         ]),
-        html.H2('Map Point Data'),
+        html.H2('Map Data'),
         html.Div([
             html.Div([
                 html.Div(id='div-map'),
@@ -90,4 +90,3 @@ def selectData(selectData):
     return dt_points
 
 app.layout = generate_layout(thread_id)
-
