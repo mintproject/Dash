@@ -23,7 +23,7 @@ def generate_layout(thread_id):
         html.Div([
             html.Div([
                 html.Div(id='div-map'),
-                html.Div(id='testdiv'),
+                html.Div(id='mp-testdiv'),
             ],className='six columns'),
             html.Div([
                 html.Div(id='map-selections'),
@@ -74,14 +74,14 @@ def update_output(thread_id):
     # return ['Please enter a properly formatted threadid.']
 
 # Show result of selecting data with either box select or lasso
-@app.callback(Output('testdiv','children'),[Input('locations_map','selectedData')])
+@app.callback(Output('mp-testdiv','children'),[Input('locations_map','selectedData')])
 def selectData(selectData):
     points = selectData['points']
     dfPoints = pd.DataFrame(points)
     dfPoints=dfPoints[['lat','lon']]
     dt_points  = [
         html.P('Selected Data Points'),
-        dash_table.DataTable(
+        dt.DataTable(
                         id='table-selected-points',
                         columns=[{"name": i, "id": i} for i in dfPoints.columns],
                         data=dfPoints.to_dict('records'),
@@ -89,4 +89,4 @@ def selectData(selectData):
     ]
     return dt_points
 
-app.layout = generate_layout(thread_id)
+#app.layout = generate_layout(thread_id)
