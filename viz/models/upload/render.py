@@ -7,12 +7,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
 ## LAYOUT ##
-def generate_layout():
-    try:
-        thread_id
-    except NameError:
-        thread_id = ''
-        # 'b2oR7iGkFEzVgimbNZFO'
+def generate_layout(thread_id):
+    # 'b2oR7iGkFEzVgimbNZFO'
     sdata=''
     if thread_id != '':
         # if there is a thread, load the data into the data store

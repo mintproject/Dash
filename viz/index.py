@@ -12,6 +12,7 @@ from viz.models.economic_dynamic.render import layout as layout_economic_dynamic
 from viz.models.cycles_parallel import render as render_cycles_parallel
 from viz.models.cycles import render as render_cycles
 from viz.models.upload import render as render_upload
+from viz.models.scatter_plot import render as render_scatter_plot
 
 THREAD_ID = "thread_id"
 
@@ -19,6 +20,8 @@ THREAD_ID = "thread_id"
 CYCLES_PARALLEL = "cycles_parallel"
 CYCLES = "cycles"
 UPLOAD = "upload"
+
+SCATTER_PLOT = "scatter_plot"
 
 # Hard Coded Data
 ECONOMIC = "economic"
@@ -49,5 +52,7 @@ def display_page(pathname, search):
             return layout_economic
         elif model_name == UPLOAD:
             return render_upload.generate_layout(thread_id)
+        elif model_name == SCATTER_PLOT:
+            return render_scatter_plot.generate_layout(thread_id)
 
     return '404'
