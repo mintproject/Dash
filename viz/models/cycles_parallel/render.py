@@ -1,53 +1,57 @@
+##### RENDER.PY #####
+## FOR LIVE
 from viz.utils import *
+##
 
-# styling
+#styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
-                        'https://codepen.io/chriddyp/pen/brPBPO.css']
-
-#pointless comment to force rebuild
-
-## threadid.  Change to get this from url when avilable.
-#thread_id = 'b2oR7iGkFEzVgimbNZFO'
+'https://codepen.io/chriddyp/pen/brPBPO.css']
 
 # Options lists for cycles.  Move to callback when metadata available
 options_list=['end_planting_day','fertilizer_rate','start_planting_day', 'weed_fraction', 'total_biomass', 'root_biomass',
    'grain_yield', 'forage_yield', 'ag_residue', 'harvest_index', 'potential_tr', 'actual_tr', 'soil_evap', 'total_n', 'root_n',
-   'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage','latitude','longitude'
-]
-selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield','latitude','longitude']
+   'grain_n', 'forage_n', '"cum._n_stress"', 'n_in_harvest', 'n_in_residue', 'n_concn_forage']
+selected_options=['fertilizer_rate','start_planting_day', 'weed_fraction','grain_yield']
 
 # Layout
 def generate_layout(thread_id):
     layout = html.Div([
-        html.H3('Parallel Coordinates Graph'),
+    # Local Data Stores
+    dcc.Store(id='cyclespc-s-filtdata'),
+    dcc.Store(id='cyclespc-map-ids'),
+    dcc.Store(id='cyclespc-map-selected'),
+    # dcc.Store(id='cyclespc-s-settings'),
+    # dcc.Store(id='cyclespc-cyclespc-s-sqldata'),
+    #Page elements
         html.Div([
-            html.Label('Thread id'),
-            dcc.Input(id='thread_id', value=thread_id, type='text', style={"width": "33%"}),
-        ]),
-        dcc.Store(id='s-settings'),
-        dcc.Store(id='s-sqldata'),
+            html.H3(['Parallel Coordinates Graph']),
+            html.Label(['for MINT modeling thread: '],style={'float':'left'}),
+            dcc.Input(id='thread_id', value=thread_id,style={'float':'left'}),
+        ],className='row'),
+
         html.Div([
             html.Div([
                 html.P('CROP'),
                 dcc.Dropdown(id='dd_crop'),
-                # dcc.Dropdown(id='dd_crop',multi=True),
+            ],className='three columns'),
+            html.Div([
                 html.P('PLANTING START DATE'),
                 dcc.Dropdown(id='dd_planting',multi=True),
-            ],className="four columns"),
-            html.Div([
-                html.P('LOCATIONS'),
-                dcc.Dropdown(id='dd_locations',multi=True),
-                html.P('YEAR'),
-                html.Div(id='rs_year'),
-            ],className="eight columns"),
-        ],className="row"),
-        html.Div([
+            ],className='three columns'),
+        # ],className='row'),
+        # html.Div([
             html.Div([
                 html.P('AXES:'),
                 dcc.Dropdown(id='dd_pcoptions',
                             options=[dict(label=x, value=x) for x in sorted(options_list)],
                             value=selected_options,
                             multi=True),
+            ],className='six columns'),
+        ],className='row'),
+        html.Div([
+            html.Div([
+                html.P('YEAR'),
+                html.Div(id='div_rs_year',children=[dcc.RangeSlider(id='rs_year')]),
             ],className="six columns"),
             html.Div([
                 html.P('SCALE:'),
@@ -57,94 +61,141 @@ def generate_layout(thread_id):
                             ),
             ],className="three columns"),
             html.Div([
-                html.Div([html.Button('Build Parallel Coordinates', id='btn-pc')],style={"margin-top":'30px'})
-            ],className="two columns"),
+                html.Button('Build Parallel Coordinates', id='btn-pc',style={'margin':'30px'})
+            ],className="three columns"),
+        ],className="row"),
+
+        html.Div([
+            html.Div([
+                dcc.Loading(id='l-cycles-map',children=[
+                    html.Div(id='cycles-map'),
+                ],type="circle"),
+            ],className="four columns"),
+            html.Div([
+                dcc.Loading(id='l-pc-graph',children=[
+                    html.Div(id='cycles-pc')
+                ],type="circle"),
+            ],className="eight columns"),
         ],className="row"),
         html.Div([
-                html.Div(id='div_pcoptions')
-        ],className="row"),
-        html.Div([
-            dcc.Loading(id='l-graph',children=[
-                html.Div(id='graph')
-            ],type="circle"),
-        ],className="row"),
-        html.Div(id='testdiv'),
+            html.Div(id="cycles-datatable")
+        ],className='row')
     ])
     return layout
 
+# FUNCTIONS
+def load_spatial_data(thread_id):
+    if thread_id is not None:
+        if ' ' in thread_id:
+            return None
+        if thread_id.isalnum():
+            spatial_query = """SELECT DISTINCT threadid, x as lon, y as lat,
+                            id from threads_inputs where threadid='{}' and spatial_type = 'Point';""".format(thread_id)
+            spatial_df = pd.DataFrame(pd.read_sql(spatial_query, con))
+            if spatial_df.empty:
+                return None
+            return spatial_df
+        return None
+    return None
 
 # Callbacks
+# Build Map
+@app.callback([Output('cycles-map', 'children'),Output('cyclespc-map-ids','data')],
+              [Input('thread_id', 'value')],
+              [State('cyclespc-map-ids','data')])
+def update_output(thread_id,mapdata):
+    if thread_id == '':
+        kids =  ['Please enter a thread ID']
+    if ' ' in thread_id or thread_id.isalnum()==False:
+        kids = ['Please enter a properly formatted threadid.']
+    df=pd.DataFrame()
+    if thread_id.isalnum():
+        df = load_spatial_data(thread_id)
+        if df is None:
+            return ['This thread has no Spatial data']
+        fig = px.scatter_mapbox(df, lat="lat", lon="lon",
+                                color_discrete_sequence=["fuchsia"], zoom=6, height=300)
+        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        kids = [html.P('Please select points from the map below using the plotly selection tools (box or lasso) located in the top right of the map.'),
+            dcc.Graph(id='locations_map', figure=fig)]
+    locationsdata = df.to_dict('records')
+    return kids, locationsdata
+
+# Show result of selecting data with either box select or lasso
+@app.callback(Output('cyclespc-map-selected','data'),
+    [Input('locations_map','selectedData')],
+    [State('cyclespc-map-selected','data')]
+    )
+def selectData(selectData,sData):
+    kids = ''
+    if selectData is None:
+        return {}
+    dfPoints = pd.DataFrame(selectData['points'])
+    selectedData = dfPoints.to_dict('records')
+    return  selectedData
+
 #Set Dropdown Values
 @app.callback(
     [Output('dd_crop','options'),Output('dd_crop','value'),
-    Output('dd_locations','options'),Output('dd_locations','value'),
     Output('dd_planting','options'), Output('dd_planting','value')
-    ,Output('rs_year','children')
-    ],
+    ,Output('div_rs_year','children')],
     [
-        Input('s-settings','data'),
+        # Input('cyclespc-s-settings','data'),
         Input(component_id='thread_id', component_property='value')
     ]
     )
-def set_dropdowns(settings,thread_id):
+def set_dropdowns(thread_id):
     if thread_id is None or thread_id == '':
         raise PreventUpdate
     tablename = 'cycles_0_9_4_alpha_runs'
-    query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
-                FROM
-                (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
-                FROM threads_inputs where threadid = '{}') ti
-                INNER JOIN
-                (select * from {} where threadid = '{}') i
-                ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
+    query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, start_year,end_year
+                FROM {} where threadid = '{}';""".format(tablename,thread_id)
     df = pd.DataFrame(pd.read_sql(query,con))
-
     #dropdown options
     crops = df.crop_name.unique()
     crop_options = [dict(label=x, value=x) for x in sorted(crops)]
     planting_starts = df.start_planting_day.unique()
     planting_options =[dict(label=x, value=x) for x in sorted(planting_starts)]
-    locations = df.location.unique()
-    location_options = [dict(label=x, value=x) for x in sorted(locations)]
     #year range slider options
     start_year = df.start_year.min()
     end_year = df.end_year.max()
     year_options = [dict(label=x, value=x) for x in range(start_year, end_year)]
     testdiv = 'years: {} - {}'.format(start_year, end_year)
-    print("ok:" + thread_id)
-
     yearslider =dcc.RangeSlider(
                 id='rs_year',
                 min=start_year,
                 max=end_year,
                 marks={i: '{}'.format(i) for i in range(start_year,end_year+1)},
                 step=None,
-                value=[(end_year-3),(end_year-1)],
+                value=[end_year,(end_year+1)],
                 allowCross=False
             ),
     return [crop_options,crops[0],
-            location_options,locations[0:5],
             planting_options,planting_starts,
             yearslider]
 
 @app.callback(
-    Output('testdiv','children'),
-    # Output('sqldata','data')
-    [Input('btn-pc', 'n_clicks')],
-    [State('dd_crop','value'),State('dd_locations','value'), State('dd_planting','value'), State('rs_year','value'),
-    State('dd_locations','options'),State('rs_year','min'),State('rs_year','max'),State('dd_pcoptions','value'),State('dd_pcscale','value')
-     ,State(component_id='thread_id', component_property='value')])
-def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,yearmax,selectlist,scale,thread_id):
+    Output('cycles-pc','children'),
+    [Input('btn-pc', 'n_clicks'),Input('cyclespc-map-selected','data')]
+     ,[State('dd_crop','value'),State('dd_planting','value'), State('rs_year','value')
+    ,State('rs_year','min'),State('rs_year','max')
+    ,State('dd_pcoptions','value'),State('dd_pcscale','value'),State('thread_id', 'value')
+    ,State('cyclespc-map-ids','data')
+    ]
+    )
+def update_figure(n_clicks,selectedPoints,crop,planting,year,yearmin,yearmax,selectlist,scale,thread_id,mapData):
     if n_clicks is None:
         raise PreventUpdate
-    for item in (crop,locations,planting,year):
+    # Get Data filtered by top selections
+    for item in (crop,planting,year):
         if item is None or item == '':
             # raise PreventUpdate
             return "Please ensure all variables are selected"
     ins = 'cycles_0_9_4_alpha_runs'
     outs = 'cycles_0_9_4_alpha_cycles_season'
     thread = "'" + thread_id + "'"
-    #build lists for strings
+    # build select lists, correcting for database characterization of columns as text
     select_cols = 'crop'
     selectlist.append(scale)
     selectlist = list(sorted(set(selectlist)))
@@ -152,37 +203,25 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
         scols = "::numeric,".join(list(selectlist))
     if len(selectlist) > 0:
         select_cols = select_cols + ', ' + scols + '::numeric'
-
-    # crop_list=[]
-    # if isinstance(crop, list):
-    #     crop_list = "','".join(list(crop))
-    # crop_list = "'" + crop_list + "'"
-
-    #build lists for ints
+    # build lists for ints
     planting_list = ",".join(str(x) for x in list(planting))
-    #if locations selected < total locations, add locations clause
-    # locationclause = ''
-    # if len(locations) != len(locationoptions):
-    locations_list=[]
-    if isinstance(locations, list):
-        locations_list = "','".join(list(locations))
-    locations_list = "'" + locations_list + "'"
-        # locationclause = ' AND location IN  ({}) '.format(locations_list)
+    locations_filter=''
+    if selectedPoints is not None:
+        md = pd.DataFrame(mapData)
+        dfPoints = pd.DataFrame(selectedPoints)
+        dfMap = pd.merge(md,dfPoints, left_on=['lat','lon'], right_on=['lat','lon'])
+        cycles_weather_list = "','".join(dfMap.id.unique())
+        cycles_weather_list = "'" + cycles_weather_list + "'"
+        locations_filter = 'AND cycles_weather IN ({})'.format(cycles_weather_list)
+
     query="""SELECT {}
               FROM
             (
-            SELECT * FROM 
-            (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
-              FROM threads_inputs 
-              where threadid =  '{}' ) ti
-              INNER JOIN
-              (select * from {} 
-                where threadid = '{}' 
+              select * from {}
+                where threadid = '{}'
                 AND crop_name LIKE '{}'
                 AND start_planting_day IN ({})
-                ) i
-              ON ti.id = i.cycles_weather
-              AND ti.location in ({})  
+                {}
             ) ins
             INNER JOIN
             (Select * from
@@ -190,18 +229,14 @@ def update_figure(n_clicks,crop,locations,planting,year,locationoptions,yearmin,
             FROM {}) o
             WHERE year >= {} and year <= {}
             ) outs
-            ON ins.mint_runid = outs.mint_runid """.format(select_cols,thread_id,ins,thread_id,crop,planting_list,locations_list,outs,year[0],year[1])
-    pcdata = pd.DataFrame(pd.read_sql(query,con))
-    # contents=[]
-    # for c in crop:
-    # graphid = 'graph-' + c
-    # c = crop[0]
-    figdata = pcdata
+            ON ins.mint_runid = outs.mint_runid""".format(select_cols,ins,thread_id,crop,planting_list,locations_filter,outs,year[0],year[1])
+    # get data filtered to settings
+    figdata = pd.DataFrame(pd.read_sql(query,con))
     fig = px.parallel_coordinates(figdata, color=scale,
                             # color_continuous_midpoint = figdata.loc[:,scale].median(),
                             #  color_continuous_scale=px.colors.diverging.Tealrose
                              )
     pc = dcc.Graph(id='graphid',figure=fig)
-    # contents.append(pc)
     return pc
 
+##### END RENDER.PY #####
