@@ -72,3 +72,5 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
+
+# Add Comment to force rebuild after fail
