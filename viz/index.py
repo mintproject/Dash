@@ -62,7 +62,7 @@ def display_page(pathname, search):
         elif model_name == MAP_POINTS:
             return render_map_points.generate_layout(thread_id)     
         elif model_name == TEST_RENDER:
-            return render_test.generate_layout(thread_id)         
+            return render_test_render.generate_layout(thread_id)         
         elif model_name == TEST_LAYOUT:
             return layout_test_layout    
     return '404'
