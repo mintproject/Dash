@@ -22,10 +22,7 @@
 # import plotly.graph_objects as go
 
 # FOR LIVE
-from viz.app import app
-# FOR LIVE: IMPORT DATABASE
-from viz.app import engine
-#
+from viz.utils import *
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
