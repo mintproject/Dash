@@ -1,26 +1,3 @@
-# dash libs
-# libraries
-# import pandas as pd
-# import numpy as np
-# from sqlalchemy import create_engine
-# import json
-# import time
-# import base64
-# import io
-#
-# # dash libraries
-# import dash
-# from dash.dependencies import Input, Output, State
-# from dash.exceptions import PreventUpdate
-# import dash_html_components as html
-# import dash_core_components as dcc
-# import dash_table
-#
-# # Plotting libraries
-# import plotly.express as px
-# from plotly.subplots import make_subplots
-# import plotly.graph_objects as go
-
 # FOR LIVE
 from viz.utils import *
 
@@ -28,14 +5,8 @@ from viz.utils import *
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
-# ## LOCAL ONLY
-# ##Config elements
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# app.config.suppress_callback_exceptions = True
-# ##
-
 # Layout
-def generate_layout():
+def generate_layout(thread_id):
     dlayout = html.Div([
         # Data Stores
         dcc.Store(id='upload-s-cols'),
@@ -268,10 +239,3 @@ def make_parallel(n_clicks,scale,cols,tabledata):
     msg=''
     return fig,msg
 
-# ## LOCAL ONLY
-#
-# app.layout = generate_layout
-#
-# if __name__ == '__main__':
-#     app.run_server(debug=True,port=8030)
-# ##
