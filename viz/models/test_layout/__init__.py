@@ -2,7 +2,7 @@ from viz.app import app
 
 layout = html.Div([
     dcc.Upload(
-        id='upload-data',
+        id='test-upload-data',
         children=html.Div([
             'Drag and Drop or ',
             html.A('Select Files')
@@ -20,7 +20,7 @@ layout = html.Div([
         # Allow multiple files to be uploaded
         multiple=True
     ),
-    html.Div(id='output-data-upload'),
+    html.Div(id='test-output-data-upload'),
 ])
 
 
@@ -62,10 +62,10 @@ def parse_contents(contents, filename, date):
     ])
 
 
-@app.callback(Output('output-data-upload', 'children'),
-              [Input('upload-data', 'contents')],
-              [State('upload-data', 'filename'),
-               State('upload-data', 'last_modified')])
+@app.callback(Output('test-output-data-upload', 'children'),
+              [Input('test-upload-data', 'contents')],
+              [State('test-upload-data', 'filename'),
+               State('test-upload-data', 'last_modified')])
 def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         children = [
