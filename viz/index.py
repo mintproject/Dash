@@ -7,7 +7,7 @@ from viz.app import app
 # Hard Coded models
 from viz.models.economic.render import layout as layout_economic
 from viz.models.economic_dynamic.render import layout as layout_economic_dynamic
-from viz.models.test_layout.render import layout as layout_test_layout
+# from viz.models.test_layout.render import layout as layout_test_layout
 
 # Models to take Thread ID
 from viz.models.cycles_parallel import render as render_cycles_parallel
@@ -15,7 +15,7 @@ from viz.models.cycles import render as render_cycles
 from viz.models.upload import render as render_upload
 from viz.models.scatter_plot import render as render_scatter_plot
 from viz.models.map_points import render as render_map_points
-from viz.models.test_render import render as render_test_render
+# from viz.models.test_render import render as render_test_render
 
 THREAD_ID = "thread_id"
 
@@ -25,12 +25,12 @@ CYCLES = "cycles"
 UPLOAD = "upload"
 SCATTER_PLOT = "scatter_plot"
 MAP_POINTS = "map_points"
-TEST_RENDER = "test_render"
+# TEST_RENDER = "test_render"
 
 # Hard Coded Data
 ECONOMIC = "economic"
 ECONOMIC_DYNAMIC = "economic_dynamic"
-TEST_LAYOUT = "test_layout"
+# TEST_LAYOUT = "test_layout"
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -61,8 +61,8 @@ def display_page(pathname, search):
             return render_scatter_plot.generate_layout(thread_id)
         elif model_name == MAP_POINTS:
             return render_map_points.generate_layout(thread_id)     
-        elif model_name == TEST_RENDER:
-            return render_test_render.generate_layout(thread_id)         
-        elif model_name == TEST_LAYOUT:
-            return layout_test_layout    
+#         elif model_name == TEST_RENDER:
+#             return render_test_render.generate_layout(thread_id)         
+#         elif model_name == TEST_LAYOUT:
+#             return layout_test_layout    
     return '404'
