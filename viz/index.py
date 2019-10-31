@@ -7,7 +7,7 @@ from viz.app import app
 # Hard Coded models
 from viz.models.economic.render import layout as layout_economic
 from viz.models.economic_dynamic.render import layout as layout_economic_dynamic
-from viz.models.test_layout import layout as layout_test_layout
+from viz.models.test_layout.render import layout as layout_test_layout
 
 # Models to take Thread ID
 from viz.models.cycles_parallel import render as render_cycles_parallel
