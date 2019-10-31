@@ -1,5 +1,5 @@
-import base64
-import io
+# import base64
+# import io
 
 # FOR LIVE
 from viz.utils import *
@@ -118,9 +118,9 @@ def parse_contents(contents, filename):
 
 # Build dash data table from dataframe
 def create_datatable(dataframe):
-    dt = dash_table.DataTable(
+    dtable = dt.DataTable(
         # Table Data
-                    id='dt',
+                    id='dtable',
                     data=dataframe.to_dict('records'),
                     columns=[{'name': i, 'id': i, "selectable": True, "hideable": True} for i in dataframe.columns],
         # Table Controls
@@ -136,7 +136,7 @@ def create_datatable(dataframe):
                     page_current= 0,
                     page_size= 10,
                 )
-    return dt
+    return dtable
 
 ## CALLBACKS ##
 # Load Uploaded data into data table and store.  Use default dataframe if no data
@@ -185,7 +185,7 @@ for dd in scatter_dropdowns:
                 ,Input('upload-y','value'),Input('upload-color','value')
                 ,Input('upload-facet_col','value'),Input('upload-facet_row','value')
                 ,Input('upload-hover','value')]
-                ,[State('dt','data')]
+                ,[State('dtable','data')]
                 )
 def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tabledata):
     if n_clicks is None:
@@ -220,8 +220,8 @@ def parallel_coordinates_options(cols,ncols):
 ## Build Parallel Graphs
 @app.callback([Output('graph-parallel', 'figure'),Output('msg-parallel', 'children')],
                 [Input('btn-pcoord','n_clicks')],
-                [State('dd_pcoord_scale','value'),State('cl_pcoord','value'),State('dt','data')]
-                ) #GET DATATABLE DATA AS INPUT
+                [State('dd_pcoord_scale','value'),State('cl_pcoord','value'),State('dtable','data')]
+                )
 def make_parallel(n_clicks,scale,cols,tabledata):
     if n_clicks is None:
         raise PreventUpdate
@@ -241,4 +241,3 @@ def make_parallel(n_clicks,scale,cols,tabledata):
                              )
     msg=''
     return fig,msg
-
