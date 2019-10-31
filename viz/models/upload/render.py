@@ -1,105 +1,103 @@
-## FOR LIVE
+# import base64
+# import io
+
+# FOR LIVE
 from viz.utils import *
-##
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
-## LAYOUT ##
+# Layout
 def generate_layout(thread_id):
-    # 'b2oR7iGkFEzVgimbNZFO'
-    sdata=''
-    if thread_id != '':
-        # if there is a thread, load the data into the data store
-        # tablename = 'cycles_0_9_4_alpha__runs'
-        # query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
-        #         FROM
-        #         (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
-        #         FROM threads_inputs where threadid = '{}') ti
-        #         INNER JOIN
-        #         (select * from {} where threadid = '{}') i
-        #         ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
-        # df = pd.DataFrame(pd.read_sql(query,con))
-        sdata = 'Got a thread here!'
-    return html.Div([
-        dcc.Store(id='s-cols'),
+    dlayout = html.Div([
+        # Data Stores
+        dcc.Store(id='upload-s-cols'),
+        dcc.Store(id='upload-s-num'),
         dcc.Store(id='s-data'),
-        dcc.Tabs(id="tabs", children=[
-            dcc.Tab(label='Load Data', children=[
-                html.Div([
-                    html.Label('Thread id'),
-                    dcc.Input(id='cycles_thread_id', value=thread_id, type='text', style={"width": "33%"}),
+        #Test DIV
+        html.Div(id='testdiv'),
+        # Layout Elements
+        html.Div([
+            html.Div([
+                html.H4('Upload and Visualize Data'),
+            ],className="six columns"),
+            html.Div(id='uploadInfo',className='five columns',style={'float':'right','margin-top':'30px'}),
+        ],className='row'),
+        html.Div([
+            html.Div(id='map-div',style={'float':'left'}),
+            dcc.Tabs(id="tabs", children=[
+                dcc.Tab(label='Data', children=[
+                    dcc.Upload(
+                        id='upload-data',
+                        children=html.Div([
+                            'Drag and Drop or ',
+                            html.A('Select Files'),
+                            ' to upload or change data '
+                        ]),
+                        style={
+                            'width': '100%',
+                            'height': '60px',
+                            'lineHeight': '60px',
+                            'borderWidth': '1px',
+                            'borderStyle': 'dashed',
+                            'borderRadius': '5px',
+                            'textAlign': 'center',
+                            'margin': '10px'
+                        },
+                        # Allow multiple files to be uploaded
+                        # multiple=True
+                    ),
                 ]),
-                html.Div(check_data(thread_id)),
-            ]),
-            dcc.Tab(label='Scatter', children=[
-                html.Div([
+                dcc.Tab(label='Scatter / Line', children=[
                     html.Div([
                         html.P(['X Axis: ']),
-                        dcc.Dropdown(id='dd-x'),
+                        dcc.Dropdown(id='upload-x'),
                         html.P(['Y Axis: ']),
-                        dcc.Dropdown(id='dd-y'),
+                        dcc.Dropdown(id='upload-y'),
                         html.P(['Color: ']),
-                        dcc.Dropdown(id='dd-color'),
+                        dcc.Dropdown(id='upload-color'),
                         html.P(['Facet Column: ']),
-                        dcc.Dropdown(id='dd-facet_col'),
+                        dcc.Dropdown(id='upload-facet_col'),
                         html.P(['Facet Row: ']),
-                        dcc.Dropdown(id='dd-facet_row'),
+                        dcc.Dropdown(id='upload-facet_row'),
                         html.P(['On Hover show: ']),
-                        html.Div([dcc.Dropdown(id='dd-hover',multi=True)]),
-                        html.Div([html.Button('Build Graph', id='btn-scatter')]),
-                    ],className='three columns'),
+                        html.Div([dcc.Dropdown(id='upload-hover',multi=True)]),
+                        html.Button('Draw Graph', id='btn-scatter'),
+                    ],style={'float':'left','width':'25%'}),
+                    html.Div(id='upload-div-scatter',style={'float':'left','width':'75%'}),
+                ]),
+                dcc.Tab(label='Parallel', children=[
                     html.Div([
-                        dcc.Graph(id='graph-scatter')
-                    ],className="nine columns"),
-                ],className='row')
-            ]),
-            dcc.Tab(label='Parallel', children=[]),
-        ]),
-        html.Div(id='stores'),
-    ])
+                        html.H3('Parallel Coordinates Graph'),
+                        html.P('Scale: '),
+                        dcc.Dropdown(
+                            id='dd_pcoord_scale',
+                            # options=[dict(label=x, value=x) for x in sorted(ncols)]
+                        ),
+                        html.P('Columns to show: '),
+                        dcc.Checklist(
+                            id='cl_pcoord',
+                            # options=[dict(label=x, value=x) for x in sorted(ncols)]
+                        ),
+                        html.Button('Build Graph', id='btn-pcoord')
+                    ],style={'float':'left','width':'25%'}),
+                    html.Div(id='upload-div-parallel',style={'float':'left','width':'75%'}),
+                ]),
 
+
+            ])
+        ],className='row'),
+
+        html.Div([
+
+            html.Div(id='output-data-upload'),
+        ],className='row',style={'border-top':'2px solid black','margin-top':'20px','padding-top':'20px'}),
+    ])
+    return dlayout
 
 ## FUNCTIONS ##
-# Check and Load data
-def check_data(thread_id):
-    if thread_id is None or thread_id == '':
-        children = upload_file()
-    else:
-        children = 'You have loaded data for the thread: ' + thread_id
-    return children
-
-def store_data(dataframe):
-    scols = dataframe.columns.values.tolist()
-    sdata = dataframe.to_dict('records')
-    return scols, sdata
-
-# Upload data
-def upload_file():
-    children = [html.H3('File Upload'),
-                dcc.Upload(
-                    id='upload-data',
-                    children=html.Div([
-                        'Drag and Drop or ',
-                        html.A('Select Files')
-                    ]),
-                    style={
-                        'width': '100%',
-                        'height': '60px',
-                        'lineHeight': '60px',
-                        'borderWidth': '1px',
-                        'borderStyle': 'dashed',
-                        'borderRadius': '5px',
-                        'textAlign': 'center',
-                        'margin': '10px'
-                    },
-                    # Allow multiple files to be uploaded
-                    # multiple=True
-                ),
-                html.Div(id='output-data-upload')]
-    return children
-
+# Read in the data from an uploaded file
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -118,38 +116,83 @@ def parse_contents(contents, filename):
         ])
     return df
 
+# Build dash data table from dataframe
+def create_datatable(dataframe):
+    dt = dash_table.DataTable(
+        # Table Data
+                    id='dt',
+                    data=dataframe.to_dict('records'),
+                    columns=[{'name': i, 'id': i, "selectable": True, "hideable": True} for i in dataframe.columns],
+        # Table Controls
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="multi",
+                    column_selectable="multi",
+                    # row_selectable="multi",
+                    # row_deletable=True,
+                    selected_columns=[],
+                    selected_rows=[],
+                    page_action="native",
+                    page_current= 0,
+                    page_size= 10,
+                )
+    return dt
 
 ## CALLBACKS ##
-# Upload data into data stores
-@app.callback([Output('s-cols','data'),Output('s-data','data')],
+# Load Uploaded data into data table and store.  Use default dataframe if no data
+@app.callback([Output('uploadInfo','children'),Output('output-data-upload', 'children'),
+                Output('upload-s-cols','data'), Output('upload-s-num','data'),
+                Output('upload-div-scatter','children'),Output('upload-div-parallel','children')
+                ],
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename')])
 def update_output(contents, filename):
     if contents is None:
         raise PreventUpdate
-    df = parse_contents(contents, filename)
-    return store_data(df)
+    else:
+        df = parse_contents(contents, filename)
+    uploadinfo = html.Div(['Data Source: ',filename])
+    outputcontent = html.Div([
+        html.H4(['DATA'],className='two columns'),
+        html.Div([' '],className='nine columns'),
+        create_datatable(df)
+        ])
+    #get columns of dataframe
+    cols = df.columns.values.tolist()
+    #get numeric columns
+    ncols =  df.iloc[0:5].select_dtypes(include=np.number).columns.tolist()
+    #store data from file
+    sdata = df.to_dict('records')
+    scatterchildren = dcc.Graph(id='graph-scatter')
+    parallelchildren = [html.P(id='msg-parallel'),dcc.Graph(id='graph-parallel')]
+    return uploadinfo,outputcontent,cols,ncols,scatterchildren,parallelchildren
 
-# Build dropdowns for Scatte plot
-scatter_dropdowns = ['dd-x','dd-y','dd-color','dd-facet_col','dd-facet_row','dd-hover']
+### SCATTER / LINE ###
+# Create dropdown Options for Scatter plot selections
+scatter_dropdowns = ['upload-x','upload-y','upload-color','upload-facet_col','upload-facet_row','upload-hover']
 for dd in scatter_dropdowns:
     @app.callback(Output(dd,'options'),
-                [Input('s-cols','data')])
+                [Input('upload-s-cols','data')])
     def scatter_options(cols):
         if cols is None:
             raise PreventUpdate
         col_options = [dict(label=x, value=x) for x in cols]
         return col_options
 
-# Build Scatter graph
-@app.callback(Output("graph-scatter", "figure"),
-                [Input('dd-x','value'),Input('dd-y','value'),Input('dd-color','value'),
-                Input('dd-facet_col','value'),Input('dd-facet_row','value'),Input('dd-hover','value')]
-                ,[State('s-data','data')])
-def make_scatter(x, y, color, facet_col, facet_row, hover_info,sdata):
-    if sdata is None:
+@app.callback(Output('graph-scatter', 'figure'),
+                [Input('btn-scatter','n_clicks')
+                ,Input('upload-x','value')
+                ,Input('upload-y','value'),Input('upload-color','value')
+                ,Input('upload-facet_col','value'),Input('upload-facet_row','value')
+                ,Input('upload-hover','value')]
+                ,[State('dt','data')]
+                )
+def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tabledata):
+    if n_clicks is None:
         raise PreventUpdate
-    data_graph = pd.DataFrame(sdata)
+    if tabledata is None:
+        raise PreventUpdate
+    data_graph = pd.DataFrame(tabledata)
     fig = px.scatter(
         data_graph,
         x=x,
@@ -161,4 +204,41 @@ def make_scatter(x, y, color, facet_col, facet_row, hover_info,sdata):
         hover_data = hover_info,
     )
     return fig
+
+### PARALLEL COORDINATES ###
+## Create Options selectors for Parallel Coordinates plot
+@app.callback([Output('dd_pcoord_scale','options'),Output('cl_pcoord','options')],
+            [Input('upload-s-cols','data'),Input('upload-s-num','data')])
+def parallel_coordinates_options(cols,ncols):
+    if cols is None:
+        raise PreventUpdate
+    if ncols is None:
+        raise PreventUpdate
+    col_options = [dict(label=x, value=x) for x in sorted(ncols)]
+    return col_options,col_options
+
+## Build Parallel Graphs
+@app.callback([Output('graph-parallel', 'figure'),Output('msg-parallel', 'children')],
+                [Input('btn-pcoord','n_clicks')],
+                [State('dd_pcoord_scale','value'),State('cl_pcoord','value'),State('dt','data')]
+                ) #GET DATATABLE DATA AS INPUT
+def make_parallel(n_clicks,scale,cols,tabledata):
+    if n_clicks is None:
+        raise PreventUpdate
+    if scale is None or cols is None:
+        msg = 'Please select scale and axes options'
+        fig = {}
+        return fig, msg
+    # scale = "'" + scale + "'"
+    cols.append(scale)
+    colset = set(cols)
+    collist = list(colset)
+    figdata = pd.DataFrame(tabledata)
+    figdata = figdata[collist]
+    fig = px.parallel_coordinates(figdata, color=scale,
+                            color_continuous_midpoint = figdata.loc[:,scale].median(),
+                             color_continuous_scale=px.colors.diverging.Tealrose
+                             )
+    msg=''
+    return fig,msg
 
