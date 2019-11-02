@@ -315,7 +315,7 @@ def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,selecte
         elif latlontype == 'graph':
             graphdf = pd.read_json(graphdata, orient='split')
             data_graph = pd.merge(graphdf,dfPoints, left_on=[latcol,loncol],right_on=['lat','lon'])
-    fig = px.line(
+    fig = px.scatter(
         data_graph,
         x=x,
         y=y,
