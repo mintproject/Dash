@@ -403,3 +403,5 @@ def make_parallel(n_clicks,scale,cols,tabledata):
                              )
     msg=''
     return fig,msg
+
+# Comment to force rebuild
