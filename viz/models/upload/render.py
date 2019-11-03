@@ -8,6 +8,9 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 
 # Layout
 def generate_layout(thread_id):
+    activetab='scatter'
+    if thread_id is None or thread_id == '':
+        activetab='data'
     dlayout = html.Div([
         # Data Stores
         dcc.Store(id='upload-s-cols'),
@@ -25,7 +28,7 @@ def generate_layout(thread_id):
         ],className='row'),
         html.Div([
             dcc.Tabs(id="tabs", children=[
-                dcc.Tab(label='Data', children=[
+                dcc.Tab(label='Data', value='data',children=[
                     html.Div([
                         html.Label('Thread id'),
                         dcc.Input(id='thread_id', value=thread_id, type='text', style={"width": "33%"}),
@@ -51,20 +54,7 @@ def generate_layout(thread_id):
                         # multiple=True
                     ),
                 ]),
-                dcc.Tab(label='Map',children=[
-                    html.P(['Generate a map of the data if it includes a latitude and longitude column'],className='row'),
-                    html.Div([
-                        html.Div(['Latitude Column:'],className='two columns'),
-                        html.Div([dcc.Dropdown(id='upload-lat-selector')],className='three columns'),
-                        html.Div(['Longitude Column:'],className='two columns'),
-                        html.Div([dcc.Dropdown(id='upload-lon-selector')],className='three columns'),
-                        html.Div([html.Button('Build Map', id='btn-map')],className='two columns')
-                    ],className='row'),
-                    html.Div([
-                        html.Div(id='upload-map')
-                    ],className='row'),
-                ]),
-                dcc.Tab(label='Scatter / Line', children=[
+                dcc.Tab(label='Scatter / Line', value='scatter', children=[
                     html.Div([
                         html.P(['X Axis: ']),
                         dcc.Dropdown(id='upload-x'),
@@ -82,7 +72,7 @@ def generate_layout(thread_id):
                     ],style={'float':'left','width':'25%'}),
                     html.Div(id='upload-div-scatter',style={'float':'left','width':'75%'}),
                 ]),
-                dcc.Tab(label='Parallel', children=[
+                dcc.Tab(label='Parallel', value='parallel', children=[
                     html.Div([
                         html.H3('Parallel Coordinates Graph'),
                         html.P('Scale: '),
@@ -98,6 +88,19 @@ def generate_layout(thread_id):
                         html.Button('Build Graph', id='btn-pcoord')
                     ],style={'float':'left','width':'25%'}),
                     html.Div(id='upload-div-parallel',style={'float':'left','width':'75%'}),
+                ]),
+                dcc.Tab(label='Map',value='map',children=[
+                    html.P(['Generate a map of the data if it includes a latitude and longitude column'],className='row'),
+                    html.Div([
+                        html.Div(['Latitude Column:'],className='two columns'),
+                        html.Div([dcc.Dropdown(id='upload-lat-selector')],className='three columns'),
+                        html.Div(['Longitude Column:'],className='two columns'),
+                        html.Div([dcc.Dropdown(id='upload-lon-selector')],className='three columns'),
+                        html.Div([html.Button('Build Map', id='btn-map')],className='two columns')
+                    ],className='row'),
+                    html.Div([
+                        html.Div(id='upload-map')
+                    ],className='row'),
                 ]),
             ])
         ],className='row'),
