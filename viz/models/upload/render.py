@@ -27,7 +27,8 @@ def generate_layout(thread_id):
             html.Div(id='uploadInfo',className='five columns',style={'float':'right','margin-top':'30px'}),
         ],className='row'),
         html.Div([
-            dcc.Tabs(id="tabs", children=[
+            dcc.Tabs(id="tabs", value=activetab,
+                children=[
                 dcc.Tab(label='Data', value='data',children=[
                     html.Div([
                         html.Label('Thread id'),
