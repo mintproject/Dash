@@ -84,8 +84,8 @@ def set_dropdowns(thread_id):
     planting_options = [dict(label=x, value=x) for x in planting_starts]
     locations = df.location.unique()
     location_options = [dict(label=x, value=x) for x in sorted(locations)]
-    start_year = df.start_year.min() if not math.isnan(df.start_year.min()) else 2000
-    end_year = df.end_year.max() if not math.isnan(df.end_year.max()) else 2017
+    start_year = df.start_year.min()
+    end_year = df.end_year.max() + 1 
     year_options = [dict(label=x, value=x) for x in range(int(start_year), int(end_year))]
     testvid_cylces = 'years: {} - {}'.format(start_year, end_year)
     yearslider = dcc.Slider(
