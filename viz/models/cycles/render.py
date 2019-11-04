@@ -86,7 +86,7 @@ def set_dropdowns(thread_id):
     location_options = [dict(label=x, value=x) for x in sorted(locations)]
     start_year = df.start_year.min()
     end_year = df.end_year.max()
-    year_options = [dict(label=x, value=x) for x in range(start_year, end_year)]
+    year_options = [dict(label=x, value=x) for x in range(int(start_year), int(end_year))]
     testvid_cylces = 'years: {} - {}'.format(start_year, end_year)
     yearslider = dcc.Slider(
         id='rs_year_cylces',
