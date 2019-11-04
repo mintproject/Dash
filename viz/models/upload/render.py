@@ -1,20 +1,22 @@
-# import base64
-# import io
-
-# FOR LIVE
+## FOR LIVE
 from viz.utils import *
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 'https://codepen.io/chriddyp/pen/brPBPO.css']
 
+
 # Layout
 def generate_layout(thread_id):
+    activetab='scatter'
+    if thread_id is None or thread_id == '':
+        activetab='data'
     dlayout = html.Div([
         # Data Stores
         dcc.Store(id='upload-s-cols'),
         dcc.Store(id='upload-s-num'),
-        dcc.Store(id='s-data'),
+        dcc.Store(id='upload-s-data'),
+        dcc.Store(id='upload-s-selectedpoints'),
         #Test DIV
         html.Div(id='testdiv'),
         # Layout Elements
@@ -25,9 +27,13 @@ def generate_layout(thread_id):
             html.Div(id='uploadInfo',className='five columns',style={'float':'right','margin-top':'30px'}),
         ],className='row'),
         html.Div([
-            html.Div(id='map-div',style={'float':'left'}),
-            dcc.Tabs(id="tabs", children=[
-                dcc.Tab(label='Data', children=[
+            dcc.Tabs(id="tabs", value=activetab,
+                children=[
+                dcc.Tab(label='Data', value='data',children=[
+                    html.Div([
+                        html.Label('Thread id'),
+                        dcc.Input(id='thread_id', value=thread_id, type='text', style={"width": "33%"}),
+                    ]),
                     dcc.Upload(
                         id='upload-data',
                         children=html.Div([
@@ -49,7 +55,7 @@ def generate_layout(thread_id):
                         # multiple=True
                     ),
                 ]),
-                dcc.Tab(label='Scatter / Line', children=[
+                dcc.Tab(label='Scatter / Line', value='scatter', children=[
                     html.Div([
                         html.P(['X Axis: ']),
                         dcc.Dropdown(id='upload-x'),
@@ -67,7 +73,7 @@ def generate_layout(thread_id):
                     ],style={'float':'left','width':'25%'}),
                     html.Div(id='upload-div-scatter',style={'float':'left','width':'75%'}),
                 ]),
-                dcc.Tab(label='Parallel', children=[
+                dcc.Tab(label='Parallel', value='parallel', children=[
                     html.Div([
                         html.H3('Parallel Coordinates Graph'),
                         html.P('Scale: '),
@@ -84,19 +90,97 @@ def generate_layout(thread_id):
                     ],style={'float':'left','width':'25%'}),
                     html.Div(id='upload-div-parallel',style={'float':'left','width':'75%'}),
                 ]),
-
-
+                dcc.Tab(label='Map',value='map',children=[
+                    html.P(['Generate a map of the data if it includes a latitude and longitude column'],className='row'),
+                    html.Div([
+                        html.Div(['Latitude Column:'],className='two columns'),
+                        html.Div([dcc.Dropdown(id='upload-lat-selector')],className='three columns'),
+                        html.Div(['Longitude Column:'],className='two columns'),
+                        html.Div([dcc.Dropdown(id='upload-lon-selector')],className='three columns'),
+                        html.Div([html.Button('Build Map', id='btn-map')],className='two columns')
+                    ],className='row'),
+                    html.Div([
+                        html.Div(id='upload-map')
+                    ],className='row'),
+                ]),
             ])
         ],className='row'),
-
         html.Div([
-
-            html.Div(id='output-data-upload'),
+            html.Div(id='upload-datatable'),
         ],className='row',style={'border-top':'2px solid black','margin-top':'20px','padding-top':'20px'}),
     ])
     return dlayout
 
 ## FUNCTIONS ##
+# Load thread data if threadid is supplied
+def fix_dbname(name):
+    return name.strip().lower().replace(' ', '_').replace('(',
+        '').replace(')', '').replace('%', 'percentage').replace('/',
+        '_per_').replace('.', '_').replace('-', '_')
+
+def load_thread_data(thread_id):
+    if thread_id != None and thread_id != None:
+        meta_query = "SELECT metadata FROM threads WHERE threadid='{}'".format(thread_id)
+        meta_df = pd.DataFrame(pd.read_sql(meta_query, con))
+        if meta_df.empty:
+            print("Thread doesn't exist")
+            return None
+        meta = json.loads(meta_df.metadata[0])
+        models = meta["thread"]["models"]
+        for modelid in models:
+            model = models[modelid]
+            model_config = model["model_configuration"]
+            runs_table_name = fix_dbname("{}_runs".format(model_config))
+
+            op_table_query = "SELECT output_table_name from threads_output_table WHERE threadid='{}'".format(thread_id)
+            op_table_df = pd.DataFrame(pd.read_sql(op_table_query, con))
+            output_table_name = op_table_df.output_table_name[0]
+
+            data_query = """SELECT * from {} runs LEFT JOIN {} outputs
+                ON runs.mint_runid = outputs.mint_runid AND runs.threadid = outputs.threadid
+                WHERE runs.threadid='{}' """.format(runs_table_name, output_table_name, thread_id)
+            df = pd.DataFrame(pd.read_sql(data_query, con))
+            df = df.drop(["threadid", "mint_runid"], axis=1)
+            return df
+
+def store_data(dataframe):
+    scols = dataframe.columns.values.tolist()
+    sdata = dataframe.to_dict('records')
+    return scols, sdata
+
+#datatable filtering
+operators = [['ge ', '>='],
+             ['le ', '<='],
+             ['lt ', '<'],
+             ['gt ', '>'],
+             ['ne ', '!='],
+             ['eq ', '='],
+             ['contains '],
+             ['datestartswith ']]
+
+def split_filter_part(filter_part):
+    for operator_type in operators:
+        for operator in operator_type:
+            if operator in filter_part:
+                name_part, value_part = filter_part.split(operator, 1)
+                name = name_part[name_part.find('{') + 1: name_part.rfind('}')]
+
+                value_part = value_part.strip()
+                v0 = value_part[0]
+                if (v0 == value_part[-1] and v0 in ("'", '"', '`')):
+                    value = value_part[1: -1].replace('\\' + v0, v0)
+                else:
+                    try:
+                        value = float(value_part)
+                    except ValueError:
+                        value = value_part
+
+                # word operators need spaces after them in the filter string,
+                # but we don't want these later
+                return name, operator_type[0].strip(), value
+
+    return [None] * 3
+
 # Read in the data from an uploaded file
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
@@ -124,7 +208,8 @@ def create_datatable(dataframe):
                     data=dataframe.to_dict('records'),
                     columns=[{'name': i, 'id': i, "selectable": True, "hideable": True} for i in dataframe.columns],
         # Table Controls
-                    filter_action="native",
+                    filter_action='custom',
+                    filter_query='',
                     sort_action="native",
                     sort_mode="multi",
                     column_selectable="multi",
@@ -138,38 +223,86 @@ def create_datatable(dataframe):
                 )
     return dtable
 
+## Generate Map from user selections
+def generate_map(spatial_data,lat,lon,hover,color):
+    fig = px.scatter_mapbox(spatial_data, lat=lat, lon=lon, hover_name=hover, color=color, zoom=6,height=300)
+    fig.update_layout(mapbox_style="stamen-terrain")
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    return fig
+
 ## CALLBACKS ##
-# Load Uploaded data into data table and store.  Use default dataframe if no data
-@app.callback([Output('uploadInfo','children'),Output('output-data-upload', 'children'),
-                Output('upload-s-cols','data'), Output('upload-s-num','data'),
-                Output('upload-div-scatter','children'),Output('upload-div-parallel','children')
-                ],
-              [Input('upload-data', 'contents')],
+# Load thread or upload data into data table and store.  Use default dataframe if no data
+@app.callback([Output('uploadInfo','children'),
+                Output('upload-s-data','data'), Output('upload-s-cols','data'), Output('upload-s-num','data'),
+                Output('upload-div-scatter','children'),Output('upload-div-parallel','children'),Output('upload-map','children'),
+                Output('upload-datatable', 'children')],
+              [Input('thread_id', 'value'),Input('upload-data', 'contents')],
               [State('upload-data', 'filename')])
-def update_output(contents, filename):
+def update_output(threadid,contents, filename):
+    df = pd.DataFrame([])
     if contents is None:
-        raise PreventUpdate
+        if threadid is None or threadid == '':
+            raise PreventUpdate
+        else:
+            df = load_thread_data(threadid)
+            uploadinfo = html.Div(['Data Source: ',threadid])
     else:
         df = parse_contents(contents, filename)
-    uploadinfo = html.Div(['Data Source: ',filename])
-    outputcontent = html.Div([
-        html.H4(['DATA'],className='two columns'),
-        html.Div([' '],className='nine columns'),
-        create_datatable(df)
-        ])
+        uploadinfo = html.Div(['Data Source: ',filename])
+
     #get columns of dataframe
     cols = df.columns.values.tolist()
     #get numeric columns
     ncols =  df.iloc[0:5].select_dtypes(include=np.number).columns.tolist()
     #store data from file
     sdata = df.to_dict('records')
+    #Build tab figures
     scatterchildren = dcc.Graph(id='graph-scatter')
     parallelchildren = [html.P(id='msg-parallel'),dcc.Graph(id='graph-parallel')]
-    return uploadinfo,outputcontent,cols,ncols,scatterchildren,parallelchildren
+    mapchildren = dcc.Graph(id='map-graph')
+    #Build Datatable
+    outputcontent = html.Div([
+        html.H4(['DATA'],className='two columns'),
+        html.Div([' '],className='nine columns'),
+        create_datatable(df),
+        html.Div(id='datatable-filter-container')
+    ])
+    return uploadinfo,sdata, cols,ncols,scatterchildren,parallelchildren,mapchildren,outputcontent
+
+#Backend Filter data table. **Add by selected points
+@app.callback(
+    Output('dtable', "data"),
+    [Input('dtable', "filter_query"),Input('map-graph','selectedData')],
+    [State('upload-s-data','data'),
+     State('upload-lat-selector','value'),State('upload-lon-selector','value')
+    ])
+def update_table(filter,selectedpoints,sdata,latcol,loncol):
+    filtering_expressions = filter.split(' && ')
+    dff = pd.DataFrame(sdata)
+    if selectedpoints is not None:
+        points = selectedpoints['points']
+        dfPoints = pd.DataFrame(points)
+        dfPoints=dfPoints[['lat','lon']]
+        dff = pd.merge(dff,dfPoints, left_on=[latcol,loncol],right_on=['lat','lon'])
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+
+        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+        elif operator == 'datestartswith':
+            # this is a simplification of the front-end filtering logic,
+            # only works with complete fields in standard format
+            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+    return dff.to_dict('records')
+
 
 ### SCATTER / LINE ###
-# Create dropdown Options for Scatter plot selections
-scatter_dropdowns = ['upload-x','upload-y','upload-color','upload-facet_col','upload-facet_row','upload-hover']
+# Create dropdown Options for elements that take all columns: Scatter plot and Map selections
+scatter_dropdowns = ['upload-x','upload-y','upload-color','upload-facet_col','upload-facet_row','upload-hover','upload-lat-selector','upload-lon-selector']
 for dd in scatter_dropdowns:
     @app.callback(Output(dd,'options'),
                 [Input('upload-s-cols','data')])
@@ -179,6 +312,7 @@ for dd in scatter_dropdowns:
         col_options = [dict(label=x, value=x) for x in cols]
         return col_options
 
+## Make Scatter PLot##
 @app.callback(Output('graph-scatter', 'figure'),
                 [Input('btn-scatter','n_clicks')
                 ,Input('upload-x','value')
@@ -204,6 +338,34 @@ def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tableda
         hover_data = hover_info,
     )
     return fig
+
+## Make Map PLot##
+@app.callback(Output('map-graph', 'figure'),
+                [Input('btn-map','n_clicks')
+                ,Input('upload-lat-selector','value')
+                ,Input('upload-lon-selector','value')]
+                ,[State('dtable','data')]
+                )
+def make_map(n_clicks, lat,lon,tabledata):
+    if n_clicks is None:
+        raise PreventUpdate
+    if tabledata is None:
+        raise PreventUpdate
+    data_graph = pd.DataFrame(tabledata)
+    fig = generate_map(data_graph,lat,lon,None,None)
+    return fig
+
+### Save Selected Map points to data storedata
+@app.callback(Output('upload-s-selectedpoints','data'),
+                [Input('map-graph','selectedData')])
+def store_selectedpoints(selectedpoints):
+    if selectedpoints is None:
+        return None
+    else:
+        points = selectedpoints['points']
+        dfPoints = pd.DataFrame(points)
+        dfPoints=dfPoints[['lat','lon']]
+        return dfPoints.to_dict('records')
 
 ### PARALLEL COORDINATES ###
 ## Create Options selectors for Parallel Coordinates plot
@@ -241,3 +403,5 @@ def make_parallel(n_clicks,scale,cols,tabledata):
                              )
     msg=''
     return fig,msg
+
+# Comment to force rebuild
