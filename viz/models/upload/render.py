@@ -228,7 +228,9 @@ def create_datatable(dataframe):
                     selected_rows=[],
                     page_action="native",
                     page_current= 0,
-                    page_size= 10,
+                    page_size= 10,        
+                    export_format='csv',
+                    export_headers='display',
                 )
     return dtable
 
