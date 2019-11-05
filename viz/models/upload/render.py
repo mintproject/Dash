@@ -136,9 +136,18 @@ def load_thread_data(thread_id):
             op_table_df = pd.DataFrame(pd.read_sql(op_table_query, con))
             output_table_name = op_table_df.output_table_name[0]
 
-            data_query = """SELECT * from {} runs LEFT JOIN {} outputs
-                ON runs.mint_runid = outputs.mint_runid AND runs.threadid = outputs.threadid
-                WHERE runs.threadid='{}' """.format(runs_table_name, output_table_name, thread_id)
+            #identify cycles runs:
+            if 'cycles' in model_config:
+                data_query = """SELECT runs.*, outputs.*, ti.x as lon, ti.y as lat FROM
+                    {}	runs
+                    LEFT JOIN threads_inputs ti ON ti.id = runs.cycles_weather and ti.threadid = runs.threadid and ti.spatial_type = 'Point'
+                    LEFT JOIN {} outputs
+                        ON runs.mint_runid = outputs.mint_runid AND runs.threadid = outputs.threadid
+                        WHERE runs.threadid='{}'  """.format(runs_table_name, output_table_name, thread_id)
+            else:
+                data_query = """SELECT * from {} runs LEFT JOIN {} outputs
+                    ON runs.mint_runid = outputs.mint_runid AND runs.threadid = outputs.threadid
+                    WHERE runs.threadid='{}' """.format(runs_table_name, output_table_name, thread_id)
             df = pd.DataFrame(pd.read_sql(data_query, con))
             df = df.drop(["threadid", "mint_runid"], axis=1)
             return df
@@ -352,6 +361,7 @@ def make_map(n_clicks, lat,lon,tabledata):
     if tabledata is None:
         raise PreventUpdate
     data_graph = pd.DataFrame(tabledata)
+    data_graph = data_graph[[lat,lon]].drop_duplicates()
     fig = generate_map(data_graph,lat,lon,None,None)
     return fig
 
