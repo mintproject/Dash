@@ -194,7 +194,14 @@ def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tableda
         raise PreventUpdate
     if tabledata is None:
         raise PreventUpdate
-    data_graph = pd.DataFrame(tabledata)
+    sortvalues = []
+    for item in (facet_col,facet_row,color):
+        if item is not None:
+            sortvalues.append(item)
+    if not sortvalues:
+        data_graph = pd.DataFrame(tabledata)
+    else:
+        data_graph = pd.DataFrame(tabledata).sort_values(by=sortvalues)
     fig = px.scatter(
         data_graph,
         x=x,
