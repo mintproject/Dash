@@ -6,7 +6,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 
 thread_id=''
 # Layout
-def generate_layout():
+def generate_layout(thread_id):
     dlayout = html.Div([
         # DATA STORES
         dcc.Store(id='ts-graph-file'),
@@ -217,7 +217,7 @@ def parse_contents(contents, filename):
         [Input('btn-map-show','n_clicks_timestamp'),Input('btn-map-hide','n_clicks_timestamp')]
         )
 def show_hide_map(showclicks,hideclicks):
-    if int(showclicks) == int(hideclicks):
+    if int(showclicks)== int(hideclicks) is None:
         raise PreventUpdate
     hidestyle = {'display':'none'}
     showstyle = {'display':'block'}
@@ -489,5 +489,3 @@ def make_parallel(n_clicks,scale,cols,graphdata,selecteddata):
     msg=''
     children = [dcc.Graph(id='ts-pc-graph',figure = fig)]
     return children,msg
-
-#Add comment to force rebuild after failure
