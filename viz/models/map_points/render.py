@@ -489,3 +489,5 @@ def make_parallel(n_clicks,scale,cols,graphdata,selecteddata):
     msg=''
     children = [dcc.Graph(id='ts-pc-graph',figure = fig)]
     return children,msg
+
+#Add comment to force rebuild after failure
