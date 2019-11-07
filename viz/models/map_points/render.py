@@ -6,7 +6,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 
 thread_id=''
 # Layout
-def generate_layout(thread_id):
+def generate_layout():
     dlayout = html.Div([
         # DATA STORES
         dcc.Store(id='ts-graph-file'),
@@ -26,14 +26,18 @@ def generate_layout(thread_id):
             id='ts-header',
             style={'background-color':'#e6f5ff','margin-bottom':'5px'},
             className='row'),
+        html.Div([
+            html.Button('Hide Map', id='btn-map-hide', n_clicks_timestamp=0),
+            html.Button('Show Map', id='btn-map-show', n_clicks_timestamp=0,style={'display':'none'}),
+        ],style={'float':'right','margin-right':'15px'}),
         html.H3(['Spatial Data Visualization'],className='row'),
         html.Div([
                 html.Div([
                     html.P(['Please Upload data to generate the map'],id='ts-mapheader'),
                     html.Div([
-                        dcc.Graph(id='ts-mapfig',style={'width':'300px'}),
+                        dcc.Graph(id='ts-mapfig',style={'width':'450px'}),
                     ],id='ts-mapdiv',style={'display':'none'}),
-                ],id='ts-settings',className='three columns'),
+                ],id='ts-settings',className='four columns'),
                 html.Div([
                     dcc.Tabs(id="tabs", children=[
                         dcc.Tab(label='Upload Data',children=[
@@ -86,13 +90,27 @@ def generate_layout(thread_id):
                             html.H5(['Define Spatial Data'],className='twelve columns'),
                             html.Div([
                                 html.Div([
-                                    html.P(['Latitude Col:']),
-                                    html.Div([dcc.Dropdown(id='ts-dd-spatialfile-lat')]),
+                                    html.Div([
+                                        html.P(['Latitude Col:']),
+                                        html.Div([dcc.Dropdown(id='ts-dd-spatialfile-lat')]),
+                                        html.P(['Longitude Col:']),
+                                        html.Div([dcc.Dropdown(id='ts-dd-spatialfile-lon')]),
+                                    ]),
                                 ],className='four columns'),
                                 html.Div([
-                                    html.P(['Longitude Column:']),
-                                    html.Div([dcc.Dropdown(id='ts-dd-spatialfile-lon')]),
+                                    html.Div([
+                                        html.P(['Marker Color:']),
+                                        html.Div([dcc.Dropdown(id='ts-dd-spatialfile-mark-color')]),
+                                        html.P(['Marker Size:']),
+                                        html.Div([dcc.Dropdown(id='ts-dd-spatialfile-mark-size')]),
+                                    ]),
                                 ],className='four columns'),
+                                # html.Div([
+                                #     html.Div([
+                                #         html.P(['On Hover:']),
+                                #         html.Div([dcc.Dropdown(id='ts-dd-spatialfile-hover',multi=True)]),
+                                #     ]),
+                                # ],className='four columns'),
                             ],className='row'),
                             html.H5(['Define columns to Link datasets'],className='twelve columns'),
                             html.Div([
@@ -158,8 +176,10 @@ def generate_layout(thread_id):
                             html.P(id='msg-parallel'),
                             html.Div(id='ts-parallel')
                         ]),
+                        dcc.Tab(label='Spatial Data table',children=[html.Div(id='map-dt-spatial')]),
+                        dcc.Tab(label='Graphing Data table',children=[html.Div(id='map-dt-graphing')]),
                     ]),
-                ],className='nine columns'),
+                ],id='ts-tabs',className='eight columns'),
         ],className='row'),
     html.Div(['This project is funded by the Defense Advanced Research Projects Agency under award W911NF-18-1-0027.'],
         id='ts-footer',
@@ -189,6 +209,25 @@ def parse_contents(contents, filename):
         ])
     return df
 
+## CALLBACKS ##
+# Show / hide map and adjust Layout
+@app.callback([Output('btn-map-show','style'),Output('btn-map-hide','style'),
+                Output('ts-settings','style'),Output('ts-settings','className'),
+                Output('ts-tabs','className')],
+        [Input('btn-map-show','n_clicks_timestamp'),Input('btn-map-hide','n_clicks_timestamp')]
+        )
+def show_hide_map(showclicks,hideclicks):
+    if int(showclicks) == int(hideclicks):
+        raise PreventUpdate
+    hidestyle = {'display':'none'}
+    showstyle = {'display':'block'}
+    if int(showclicks) > int(hideclicks):
+        return hidestyle,showstyle,showstyle,'four columns','eight columns'
+    else:
+        return showstyle,hidestyle,hidestyle,'zero columns','twelve columns'
+
+
+# Load data
 @app.callback([Output('txt-graphing','children')
                ,Output('ts-graph-data-file','data'),Output('ts-graph-data-cols','data'),Output('ts-graph-data-ncols','data')
                ,Output('ts-graph-data','data')],
@@ -224,8 +263,67 @@ def update_output(contents, names, filetype):
     else:
         raise PreventUpdate
 
+#BUild Datatables
+@app.callback(Output('map-dt-spatial','children'),[Input('ts-spatial-data','data')])
+def build_spatial_datatable(spatialdata):
+    if spatialdata is None:
+        raise PreventUpdate
+    df = pd.read_json(spatialdata, orient='split')
+    dtable = dt.DataTable(
+# Table Data
+            id='spatial_dtable',
+            data=df.to_dict('records'),
+            columns=[{'name': i, 'id': i, "selectable": True, "hideable": True} for i in df.columns],
+# Table Controls
+            filter_action='custom',
+            filter_query='',
+            sort_action="native",
+            sort_mode="multi",
+            column_selectable="multi",
+            # row_selectable="multi",
+            # row_deletable=True,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 10,
+            export_format='csv',
+            export_headers='display',
+        )
+    return dtable
+
+@app.callback(Output('map-dt-graphing','children'),[Input('ts-graph-data','data')])
+def build_graphing_datatable(graphingdata):
+    if graphingdata is None:
+        return 'No data loaded'
+        # raise PreventUpdate
+    df = pd.read_json(graphingdata, orient='split')
+    dtable = dt.DataTable(
+# Table Data
+            id='graphing_dtable',
+            data=df.to_dict('records'),
+            columns=[{'name': i, 'id': i, "selectable": True, "hideable": True} for i in df.columns],
+# Table Controls
+            filter_action='custom',
+            filter_query='',
+            sort_action="native",
+            sort_mode="multi",
+            column_selectable="multi",
+            # row_selectable="multi",
+            # row_deletable=True,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 10,
+            export_format='csv',
+            export_headers='display',
+        )
+    return dtable
+
 # Add options for lat lon dropdowns
-@app.callback([Output('ts-dd-spatialfile-lat','options'),Output('ts-dd-spatialfile-lon','options'),Output('ts-lat-lon','data')],
+@app.callback([Output('ts-dd-spatialfile-lat','options'),Output('ts-dd-spatialfile-lon','options'),Output('ts-lat-lon','data'),
+                Output('ts-dd-spatialfile-mark-color','options'),Output('ts-dd-spatialfile-mark-size','options'),Output('ts-dd-spatialfile-hover','options')],
                 [Input('ts-graph-data-cols','data'),Input('ts-spatial-data-cols','data')])
 def update_latloncols(graphcols,spatialcols):
     if graphcols is None and spatialcols is None:
@@ -238,7 +336,7 @@ def update_latloncols(graphcols,spatialcols):
         # if spatial data, get options from there
         latlons = [dict(label=x, value=x) for x in spatialcols]
         latlonfile = 'spatial'
-    return latlons,latlons,latlonfile
+    return latlons,latlons,latlonfile,latlons,latlons,latlons
 
 #add options for data merge column
 # ts-dd-spatialata-merge
@@ -257,9 +355,12 @@ def update_mergecols(graphcols,spatialcols):
 
 # Display map when data loaded and lat / lon selected
 @app.callback([Output('ts-mapheader','style'),Output('ts-mapdiv','style'),Output('ts-mapfig','figure')],
-                [Input('ts-dd-spatialfile-lat','value'),Input('ts-dd-spatialfile-lon','value')],
+                [Input('ts-dd-spatialfile-lat','value'),Input('ts-dd-spatialfile-lon','value'),
+                Input('ts-dd-spatialfile-mark-color','value'),Input('ts-dd-spatialfile-mark-size','value')
+                # ,Input('ts-dd-spatialfile-hover','value')
+                ],
                 [State('ts-lat-lon','data'),State('ts-spatial-data','data'),State('ts-graph-data','data')])
-def show_map(lat,lon,latlontype,spatialdata,graphdata):
+def show_map(lat,lon,color,size,latlontype,spatialdata,graphdata):
     if lat is None or lon is None:
         raise PreventUpdate
     if latlontype == 'spatial':
@@ -268,12 +369,12 @@ def show_map(lat,lon,latlontype,spatialdata,graphdata):
         spatialdf = pd.read_json(graphdata, orient='split')
     headerdisplay = {'display': 'none'}
     mapdisplay = {'display':'inline-block'}
-    mapfig = generate_map(spatialdf,lat,lon,None,None)
+    mapfig = generate_map(spatialdf,lat,lon,color,size,None)
     return headerdisplay, mapdisplay, mapfig
 
 ## Generate Map from user selections
-def generate_map(spatial_data,lat,lon,hover,color):
-    fig = px.scatter_mapbox(spatial_data, lat=lat, lon=lon, hover_name=hover, color=color, zoom=6,height=300)
+def generate_map(spatial_data,lat,lon,color,size,hover):
+    fig = px.scatter_mapbox(spatial_data, lat=lat, lon=lon, hover_name=hover, color=color, size=size,zoom=6)
     fig.update_layout(mapbox_style="stamen-terrain")
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
