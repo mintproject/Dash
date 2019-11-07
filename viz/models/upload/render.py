@@ -27,9 +27,10 @@ def generate_layout(thread_id):
             html.Div(id='uploadInfo',className='five columns',style={'float':'right','margin-top':'30px'}),
         ],className='row'),
         html.Div([
-            dcc.Tabs(id="tabs", value=activetab,
+            dcc.Tabs(id="tabs",
+                value=activetab,
                 children=[
-                dcc.Tab(label='Data', value='data',children=[
+                dcc.Tab(label='Data', value='data', children=[
                     html.Div([
                         html.Label('Thread id'),
                         dcc.Input(id='thread_id', value=thread_id, type='text', style={"width": "33%"}),
@@ -55,7 +56,7 @@ def generate_layout(thread_id):
                         # multiple=True
                     ),
                 ]),
-                dcc.Tab(label='Scatter / Line', value='scatter', children=[
+                dcc.Tab(label='Scatter', value='scatter', children=[
                     html.Div([
                         html.P(['X Axis: ']),
                         dcc.Dropdown(id='upload-x'),
@@ -90,7 +91,7 @@ def generate_layout(thread_id):
                     ],style={'float':'left','width':'25%'}),
                     html.Div(id='upload-div-parallel',style={'float':'left','width':'75%'}),
                 ]),
-                dcc.Tab(label='Map',value='map',children=[
+                dcc.Tab(label='Map',value='map', children=[
                     html.P(['Generate a map of the data if it includes a latitude and longitude column'],className='row'),
                     html.Div([
                         html.Div(['Latitude Column:'],className='two columns'),
@@ -130,6 +131,7 @@ def load_thread_data(thread_id):
         for modelid in models:
             model = models[modelid]
             model_config = model["model_configuration"]
+
             runs_table_name = fix_dbname("{}_runs".format(model_config))
 
             op_table_query = "SELECT output_table_name from threads_output_table WHERE threadid='{}'".format(thread_id)
@@ -149,7 +151,7 @@ def load_thread_data(thread_id):
                     ON runs.mint_runid = outputs.mint_runid AND runs.threadid = outputs.threadid
                     WHERE runs.threadid='{}' """.format(runs_table_name, output_table_name, thread_id)
             df = pd.DataFrame(pd.read_sql(data_query, con))
-            df = df.drop(["threadid", "mint_runid"], axis=1)
+            df = df.drop(["threadid"], axis=1)
             return df
 
 def store_data(dataframe):
@@ -228,7 +230,7 @@ def create_datatable(dataframe):
                     selected_rows=[],
                     page_action="native",
                     page_current= 0,
-                    page_size= 10,        
+                    page_size= 10,
                     export_format='csv',
                     export_headers='display',
                 )
@@ -324,20 +326,32 @@ for dd in scatter_dropdowns:
         return col_options
 
 ## Make Scatter PLot##
-@app.callback(Output('graph-scatter', 'figure'),
+@app.callback([Output('graph-scatter', 'figure'),Output('graph-scatter', 'config')],
                 [Input('btn-scatter','n_clicks')
                 ,Input('upload-x','value')
                 ,Input('upload-y','value'),Input('upload-color','value')
                 ,Input('upload-facet_col','value'),Input('upload-facet_row','value')
                 ,Input('upload-hover','value')]
-                ,[State('dtable','data')]
+                ,[State('dtable','data'),State('thread_id', 'value')]
                 )
-def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tabledata):
+def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tabledata,thread):
     if n_clicks is None:
         raise PreventUpdate
     if tabledata is None:
         raise PreventUpdate
-    data_graph = pd.DataFrame(tabledata)
+    userfilename = 'scatter_'+thread
+    config={
+        'editable': True,
+        'toImageButtonOptions': {'filename':userfilename}
+    }
+    sortvalues = []
+    for item in (facet_col,facet_row,color):
+        if item is not None:
+            sortvalues.append(item)
+    if not sortvalues:
+        data_graph = pd.DataFrame(tabledata)
+    else:
+        data_graph = pd.DataFrame(tabledata).sort_values(by=sortvalues)
     fig = px.scatter(
         data_graph,
         x=x,
@@ -347,8 +361,9 @@ def make_scatter(n_clicks, x, y, color, facet_col, facet_row, hover_info,tableda
         facet_row=facet_row,
         height=700,
         hover_data = hover_info,
+
     )
-    return fig
+    return fig,config
 
 ## Make Map PLot##
 @app.callback(Output('map-graph', 'figure'),
@@ -392,11 +407,11 @@ def parallel_coordinates_options(cols,ncols):
     return col_options,col_options
 
 ## Build Parallel Graphs
-@app.callback([Output('graph-parallel', 'figure'),Output('msg-parallel', 'children')],
+@app.callback([Output('graph-parallel', 'figure'),Output('graph-parallel', 'config'),Output('msg-parallel', 'children')],
                 [Input('btn-pcoord','n_clicks')],
-                [State('dd_pcoord_scale','value'),State('cl_pcoord','value'),State('dtable','data')]
+                [State('dd_pcoord_scale','value'),State('cl_pcoord','value'),State('dtable','data'),State('thread_id', 'value')]
                 )
-def make_parallel(n_clicks,scale,cols,tabledata):
+def make_parallel(n_clicks,scale,cols,tabledata,thread):
     if n_clicks is None:
         raise PreventUpdate
     if scale is None or cols is None:
@@ -407,6 +422,11 @@ def make_parallel(n_clicks,scale,cols,tabledata):
     cols.append(scale)
     colset = set(cols)
     collist = list(colset)
+    userfilename = 'parallel_'+thread
+    config={
+        'editable': True,
+        'toImageButtonOptions': {'filename':userfilename}
+    }
     figdata = pd.DataFrame(tabledata)
     figdata = figdata[collist]
     fig = px.parallel_coordinates(figdata, color=scale,
@@ -414,6 +434,4 @@ def make_parallel(n_clicks,scale,cols,tabledata):
                              color_continuous_scale=px.colors.diverging.Tealrose
                              )
     msg=''
-    return fig,msg
-
-# Comment to force rebuild
+    return fig,config,msg
