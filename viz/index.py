@@ -15,6 +15,8 @@ from viz.models.cycles import render as render_cycles
 from viz.models.upload import render as render_upload
 from viz.models.scatter_plot import render as render_scatter_plot
 from viz.models.map_points import render as render_map_points
+from viz.models.images import render as render_images
+
 # from viz.models.test_render import render as render_test_render
 
 THREAD_ID = "thread_id"
@@ -25,6 +27,7 @@ CYCLES = "cycles"
 UPLOAD = "upload"
 SCATTER_PLOT = "scatter_plot"
 MAP_POINTS = "map_points"
+IMAGES = "images"
 # TEST_RENDER = "test_render"
 
 # Hard Coded Data
@@ -61,6 +64,8 @@ def display_page(pathname, search):
             return render_scatter_plot.generate_layout(thread_id)
         elif model_name == MAP_POINTS:
             return render_map_points.generate_layout(thread_id)     
+        elif model_name == IMAGES:
+            return render_images.generate_layout(thread_id)                
 #         elif model_name == TEST_RENDER:
 #             return render_test_render.generate_layout(thread_id)         
 #         elif model_name == TEST_LAYOUT:
