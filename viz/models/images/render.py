@@ -1,5 +1,5 @@
 from viz.utils import * 
-import random
+import re
 
 list_of_images = [
     '/tmp/images/2.png',
@@ -19,7 +19,7 @@ def generate_layout(thread_id=None):
 
     return html.Div([
         html.Div([
-            html.H3(['Flooding']),
+            html.H3(['Visualisations']),
             html.Label(['for MINT modeling thread: '],style={'float':'left'}),
             dcc.Input(id='images_thread_id', value=thread_id,style={'float':'left'}),
                 html.Div(id='dd-output-container'),
@@ -127,12 +127,25 @@ def update_image_src(threadid, mint_runid):
         images_df = obtain_images(op_table_name, mint_runid)
 
         for image_row in images_df.values:
-            images.append(
-                html.Img(
-                    src=image_row[0],
-                    width="500px"
+            image_url = image_row[0]
+            if re.search(r"(\.png|\.gif|\.jpg|\.jpeg)", image_url, re.IGNORECASE):
+                images.append(
+                    html.Img(
+                        src=image_url,
+                        width="500px"
+                    )
                 )
-            )
+            else:
+                images.append(
+                    html.Div(
+                        children=[
+                            html.A(
+                                href=image_url,
+                                children=image_url
+                            )
+                        ]
+                    )
+                )
     return images
 
 
