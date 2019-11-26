@@ -25,11 +25,11 @@ def generate_layout(thread_id=None):
                 html.Div(id='dd-output-container'),
         ],className='row'),
 
-
         dcc.Dropdown(
             id='images_dropdown',
         ),
-        html.Img(id='image')
+
+        html.Div(id="images")
     ])
 
 @app.callback(
@@ -55,18 +55,46 @@ def set_dropdowns(thread_id):
     df = obtain_params(thread_id)
 
     for index, row in df.iterrows():
-        print("insert {}".format(row))
-        items.append({"label": "{} - {}".format(row['ts_sfctmp'], row['ts_prcp']), "value": random.randint(1,101)})
+        #print("insert {}".format(row))
+        items.append({"label": "Config {}".format(index), "value": row["mint_runid"]})
 
     return [
         items, 
         items[0]["value"]
     ]
 
+def fix_dbname(name):
+    return name.strip().lower().replace(' ', '_').replace('(',
+        '').replace(')', '').replace('%', 'percentage').replace('/', 
+        '_per_').replace('.', '_').replace('-', '_')
+
+
 def obtain_params(thread_id):
-    thread_id='VggqferoeUnXQB93yeBM';
-    tablename = 'pihm_v4_1_0_runs'
-    query = """SELECT ts_sfctmp, ts_prcp from {} where threadid='{}';""".format(tablename,thread_id)
+    if thread_id != None and thread_id != None:
+        meta_query = "SELECT metadata FROM threads WHERE threadid='{}'".format(thread_id)
+        meta_df = pd.DataFrame(pd.read_sql(meta_query, con))
+        if meta_df.empty:
+            print("Thread doesn't exist")
+            return None
+        meta = json.loads(meta_df.metadata[0])
+        models = meta["thread"]["models"]
+        for modelid in models:
+            model = models[modelid]
+            model_config = model["model_configuration"]
+            runs_table_name = fix_dbname("{}_runs".format(model_config))
+
+            query = """SELECT * from {} WHERE threadid='{}';""".format(runs_table_name, thread_id)
+            df = pd.DataFrame(pd.read_sql(query, con))
+            df = df.drop(["threadid"], axis=1)
+            return df
+
+def obtain_output_tables(threadid):
+    query = """SELECT DISTINCT output_table_name from threads_output_table where threadid='{}';""".format(threadid)
+    df = pd.DataFrame(pd.read_sql(query, con))
+    return df
+
+def obtain_images(tablename, mint_runid):
+    query = """SELECT url from {} where mint_runid='{}' order by url asc;""".format(tablename, mint_runid)
                 
     df = pd.DataFrame(pd.read_sql(query, con))
     if df.empty:      
@@ -81,11 +109,31 @@ def obtain_params(thread_id):
         Input('images_dropdown', 'value')
     ]
     )
-def update_image_src(image_path):
-    # print the image_path to confirm the selection is as expected
-    print('current image_path = {}'.format(image_path))
-    encoded_image = base64.b64encode(open(image_path, 'rb').read())
-    return 'data:image/png;base64,{}'.format(encoded_image.decode())
+@app.callback(
+    Output('images', 'children'),
+    [ 
+        Input(component_id='images_thread_id', component_property='value'),
+        Input('images_dropdown', 'value')
+    ]
+)
+def update_image_src(threadid, mint_runid):
+    op_tables_df = obtain_output_tables(threadid)
+    images = []
+    for op_table_row in op_tables_df.values:
+        op_table_name = op_table_row[0]
+        images.append(
+            html.H2(children=op_table_name)
+        )
+        images_df = obtain_images(op_table_name, mint_runid)
+
+        for image_row in images_df.values:
+            images.append(
+                html.Img(
+                    src=image_row[0],
+                    width="500px"
+                )
+            )
+    return images
 
 
 if __name__ == '__main__':
