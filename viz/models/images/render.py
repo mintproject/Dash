@@ -69,7 +69,7 @@ def fix_dbname(name):
         '_per_').replace('.', '_').replace('-', '_')
 
 
-def obtain_params(thread_id):
+def obtain_params(thread_id, mint_runid=None):
     if thread_id != None and thread_id != None:
         meta_query = "SELECT metadata FROM threads WHERE threadid='{}'".format(thread_id)
         meta_df = pd.DataFrame(pd.read_sql(meta_query, con))
@@ -83,7 +83,10 @@ def obtain_params(thread_id):
             model_config = model["model_configuration"]
             runs_table_name = fix_dbname("{}_runs".format(model_config))
 
-            query = """SELECT * from {} WHERE threadid='{}';""".format(runs_table_name, thread_id)
+            if mint_runid is None:
+                query = """SELECT * from {} WHERE threadid='{}';""".format(runs_table_name, thread_id)
+            else:
+                query = """SELECT * from {} WHERE threadid='{}' AND mint_runid='{}';""".format(runs_table_name, thread_id, mint_runid)
             df = pd.DataFrame(pd.read_sql(query, con))
             df = df.drop(["threadid"], axis=1)
             return df
@@ -116,12 +119,39 @@ def obtain_images(tablename, mint_runid):
         Input('images_dropdown', 'value')
     ]
 )
-def update_image_src(threadid, mint_runid):
+def update_children(threadid, mint_runid):
     op_tables_df = obtain_output_tables(threadid)
-    images = []
+    params_df = obtain_params(threadid, mint_runid)
+    params_df = params_df.drop(["mint_runid"], axis=1)
+    
+    paramitems = []
+    for(colname, coldata) in params_df.iteritems():
+        paramitems.append(
+            html.Div(
+                children=[
+                    "{} = {}".format(colname, coldata.values[0])
+                ],
+                style={
+                    'background':'#EEE',
+                    'display': 'inline-block',
+                    'border-radius': '5px',
+                    'border': '1px solid #CCC',
+                    'padding' :'4px',
+                    'margin': '4px'
+                }
+            )
+        )
+
+    children = []
+    children.append(
+        html.Div(
+            children = paramitems
+        )
+    )
+
     for op_table_row in op_tables_df.values:
         op_table_name = op_table_row[0]
-        images.append(
+        children.append(
             html.H2(children=op_table_name)
         )
         images_df = obtain_images(op_table_name, mint_runid)
@@ -129,14 +159,14 @@ def update_image_src(threadid, mint_runid):
         for image_row in images_df.values:
             image_url = image_row[0]
             if re.search(r"(\.png|\.gif|\.jpg|\.jpeg)", image_url, re.IGNORECASE):
-                images.append(
+                children.append(
                     html.Img(
                         src=image_url,
                         width="500px"
                     )
                 )
             else:
-                images.append(
+                children.append(
                     html.Div(
                         children=[
                             html.A(
@@ -146,7 +176,7 @@ def update_image_src(threadid, mint_runid):
                         ]
                     )
                 )
-    return images
+    return children
 
 
 if __name__ == '__main__':
