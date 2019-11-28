@@ -18,17 +18,10 @@ def generate_layout(thread_id=None):
     # ])
 
     return html.Div([
-        html.Div([
-            html.H3(['Visualisations']),
-            html.Label(['for MINT modeling thread: '],style={'float':'left'}),
-            dcc.Input(id='images_thread_id', value=thread_id,style={'float':'left'}),
-                html.Div(id='dd-output-container'),
-        ],className='row'),
-
+        dcc.Input(id='images_thread_id', type='hidden', value=thread_id),
         dcc.Dropdown(
             id='images_dropdown',
         ),
-
         html.Div(id="images")
     ])
 
@@ -134,7 +127,7 @@ def update_children(threadid, mint_runid):
                 style={
                     'background':'#EEE',
                     'display': 'inline-block',
-                    'border-radius': '5px',
+                    'borderRadius': '5px',
                     'border': '1px solid #CCC',
                     'padding' :'4px',
                     'margin': '4px'
@@ -162,7 +155,7 @@ def update_children(threadid, mint_runid):
                 children.append(
                     html.Img(
                         src=image_url,
-                        width="500px"
+                        width="400px"
                     )
                 )
             else:
