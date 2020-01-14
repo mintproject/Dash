@@ -69,7 +69,7 @@ def obtain_params(thread_id, mint_runid=None):
         if meta_df.empty:
             print("Thread doesn't exist")
             return None
-        meta = json.loads(meta_df.metadata[0])
+        meta = json.loads(meta_df.metadata.to_json())['0']
         models = meta["thread"]["models"]
         for modelid in models:
             model = models[modelid]
