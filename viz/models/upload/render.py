@@ -434,3 +434,4 @@ def make_parallel(n_clicks,scale,cols,tabledata,thread):
                              )
     msg=''
     return fig,config,msg
+#comment to force redeploy
