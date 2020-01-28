@@ -126,8 +126,7 @@ def load_thread_data(thread_id):
         if meta_df.empty:
             print("Thread doesn't exist")
             return None
-        meta = json.loads(meta_df.metadata[0])
-        models = meta["thread"]["models"]
+        models = meta_df.metadata[0]["thread"]["models"]
         for modelid in models:
             model = models[modelid]
             model_config = model["model_configuration"]
