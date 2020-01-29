@@ -118,19 +118,16 @@ def set_dropdowns(thread_id, thread_info):
         raise PreventUpdate
 
     tablename = thread_info["runs_table"]
-    matchcol = "url"
-    if tablename == "cycles_0_9_4_alpha_runs":
-        matchcol = "id"
     weathercol = get_match_from_list(thread_info["input_columns"], "cycles_weather")
     outputtable = get_match_from_list(thread_info["output_tables"], "cycles_season")
 
     query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
                 FROM
-                (Select {}, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+                (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
                 FROM threads_inputs where threadid = '{}') ti
                 INNER JOIN
                 (select * from {} where threadid = '{}') i
-                ON ti.{} = i.{};""".format(matchcol, thread_id,tablename,thread_id,matchcol, weathercol)
+                ON ti.id = i.{};""".format(thread_id,tablename,thread_id, weathercol)
                 
     df = pd.DataFrame(pd.read_sql(query, con))
     if df.empty:      
@@ -191,10 +188,7 @@ def update_figure(crop, locations, planting, year, thread_info, thread_id):
     if item is None or item == '':
         return "Please make a selection for all inputs"
     
-    ins = thread_info["runs_table"]
-    matchcol = "url"
-    if tablename == "cycles_0_9_4_alpha_runs":
-        matchcol = "id"        
+    ins = thread_info["runs_table"]      
     outs = get_match_from_list(thread_info["output_tables"], "cycles_season")
     weathercol = get_match_from_list(thread_info["input_columns"], "cycles_weather")
 
@@ -206,17 +200,17 @@ def update_figure(crop, locations, planting, year, thread_info, thread_id):
     query="""SELECT * FROM (SELECT ins.*, outs.grain_yield, EXTRACT(year FROM TO_DATE(outs.date, 'YYYY-MM-DD')) AS year from
             (
             SELECT * FROM
-                ((Select {}, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
+                ((Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
                 FROM threads_inputs where threadid = '{}') ti
                 INNER JOIN
                 (select * from {} where threadid = '{}') i
-                ON ti.{} = i.{})
+                ON ti.id = i.{})
             WHERE crop_name LIKE '{}' AND start_planting_day = {}
             AND location IN ({})
             ) ins
             INNER JOIN {} outs
             ON ins.mint_runid = outs.mint_runid) inout
-            WHERE inout.year = {} """.format(matchcol,thread_id,ins,thread_id,matchcol,weathercol,crop,planting,location_list,outs,year)
+            WHERE inout.year = {} """.format(thread_id,ins,thread_id,weathercol,crop,planting,location_list,outs,year)
 
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
