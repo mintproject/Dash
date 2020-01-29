@@ -90,8 +90,8 @@ def obtain_output_tables(threadid):
     df = pd.DataFrame(pd.read_sql(query, con))
     return df
 
-def obtain_images(tablename, mint_runid):
-    query = """SELECT url from {} where mint_runid='{}' order by url asc;""".format(tablename, mint_runid)
+def obtain_images(tablename, threadid, mint_runid):
+    query = """SELECT url from {} where mint_runid='{}' and threadid='{}' order by url asc;""".format(tablename, mint_runid, threadid)
                 
     df = pd.DataFrame(pd.read_sql(query, con))
     if df.empty:      
@@ -148,7 +148,7 @@ def update_children(threadid, mint_runid):
         children.append(
             html.H2(children=op_table_name)
         )
-        images_df = obtain_images(op_table_name, mint_runid)
+        images_df = obtain_images(op_table_name, threadid, mint_runid)
 
         for image_row in images_df.values:
             image_url = image_row[0]
