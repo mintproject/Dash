@@ -1,4 +1,5 @@
 import math
+import re
 from viz.utils import * 
 # styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
@@ -13,6 +14,7 @@ thread_id = ""
 def generate_layout(thread_id):
     return html.Div([
         dcc.Store(id='s-settings'),
+        dcc.Store(id='cycles-thread-info'),
         html.Div([
             html.Label('Thread id'),
             dcc.Input(id='cycles_thread_id', value=thread_id, type='text', style={"width": "33%"}),
@@ -46,29 +48,86 @@ def generate_layout(thread_id):
     ])
 
 
+def fix_dbname(name):
+    return name.strip().lower().replace(' ', '_').replace('(',
+        '').replace(')', '').replace('%', 'percentage').replace('/', 
+        '_per_').replace('.', '_').replace('-', '_')
+
+def load_thread_info(thread_id):
+    if thread_id != None and thread_id != None:
+        meta_query = "SELECT metadata FROM threads WHERE threadid='{}'".format(thread_id)
+        meta_df = pd.DataFrame(pd.read_sql(meta_query, con))
+        if meta_df.empty:
+            print("Thread doesn't exist")
+            return None
+        meta = meta_df.metadata[0]
+        models = meta["thread"]["models"]
+        for modelid in models:
+            model = models[modelid]
+            model_config = model["model_configuration"]
+            runs_table_name = fix_dbname("{}_runs".format(model_config))
+            mname = re.sub(".+/", "", model_config)
+
+            if mname.find("cycles") == 0: 
+                # If this is a cycles model, fetch 
+                # - the input column names, 
+                # - the output table names, 
+                # - the run table name
+
+                ip_columns_query = "SELECT input_column_name FROM threads_input_column WHERE threadid='{}'".format(thread_id)
+                ip_columns_df = pd.DataFrame(pd.read_sql(ip_columns_query, con))
+                ip_columns = list(ip_columns_df.input_column_name)
+
+                op_table_query = "SELECT output_table_name FROM threads_output_table WHERE threadid='{}'".format(thread_id)
+                op_table_df = pd.DataFrame(pd.read_sql(op_table_query, con))
+                output_table_names = list(op_table_df.output_table_name)
+
+                return {
+                    "runs_table": runs_table_name, 
+                    "input_columns": ip_columns, 
+                    "output_tables": output_table_names
+                }
+                
+
 # Callbacks
+
+# Fetch thread information into data stores
+@app.callback(Output('cycles-thread-info','data'),
+             [Input('cycles_thread_id', 'value')])
+def update_thread_information(thread_id):
+    return load_thread_info(thread_id)
+
+
+def get_match_from_list(dlist, dstring):
+    for ditem in dlist:
+        if ditem.find(dstring) >= 0:
+            return ditem
+
 @app.callback(
     [Output('dd_crop_cylces', 'options'), Output('dd_crop_cylces', 'value'),
      Output('dd_locations_cylces', 'options'), Output('dd_locations_cylces', 'value'),
-     Output('dd_planting_cylces', 'options'), Output('dd_planting_cylces', 'value')
-        , Output('rs_year_cylces', 'children')
-     ],
-     [
-#         Input('s-settings', 'data'),
-        Input(component_id='cycles_thread_id', component_property='value')
-    ]
+     Output('dd_planting_cylces', 'options'), Output('dd_planting_cylces', 'value'), 
+     Output('rs_year_cylces', 'children')],
+    [Input('cycles_thread_id','value'),
+     Input('cycles-thread-info','data')]
 )
-def set_dropdowns(thread_id):
-    if thread_id is None or thread_id == '':
+def set_dropdowns(thread_id, thread_info):
+    print(thread_info)
+
+    if thread_id is None or thread_id == '' or thread_info is None:
         raise PreventUpdate
-    tablename = 'cycles_0_9_4_alpha_runs'
+
+    tablename = thread_info["runs_table"]
+    weathercol = get_match_from_list(thread_info["input_columns"], "cycles_weather")
+    outputtable = get_match_from_list(thread_info["output_tables"], "cycles_season")
+
     query = """SELECT crop_name, fertilizer_rate, start_planting_day, weed_fraction, latitude, longitude,start_year,end_year,location
                 FROM
                 (Select id, x as longitude, y as latitude, CONCAT(ROUND(y::numeric,2)::text ,'Nx',ROUND(x::numeric,2)::text ,'E') as location
                 FROM threads_inputs where threadid = '{}') ti
                 INNER JOIN
                 (select * from {} where threadid = '{}') i
-                ON ti.id = i.cycles_weather;""".format(thread_id,tablename,thread_id)
+                ON ti.id = i.{};""".format(thread_id,tablename,thread_id, weathercol)
                 
     df = pd.DataFrame(pd.read_sql(query, con))
     if df.empty:      
@@ -106,10 +165,12 @@ def set_dropdowns(thread_id):
     Output('testvid_cylces', 'children'),
     #  Output('graph', 'children'),
     [Input('dd_crop_cylces', 'value'), Input('dd_locations_cylces', 'value'), Input('dd_planting_cylces', 'value'),
-     Input('rs_year_cylces', 'value')],
+     Input('rs_year_cylces', 'value'),
+     Input('cycles-thread-info','data')],
 [State('cycles_thread_id','value')]
 )
-def update_figure(crop, locations, planting, year,thread_id):
+def update_figure(crop, locations, planting, year, thread_info, thread_id):
+    
   if thread_id is None or thread_id == '':
       return "Please enter a threadID to load data"
   if year is None or year == '':
@@ -118,12 +179,19 @@ def update_figure(crop, locations, planting, year,thread_id):
       return "Loading..."
   if locations is None or locations == '':
       return "Loading..."
+  if thread_info is None:
+      return "Loading..."
+
+  tablename = thread_info["runs_table"] 
 
   for item in (crop, locations, planting, year):
     if item is None or item == '':
         return "Please make a selection for all inputs"
-    ins = 'cycles_0_9_4_alpha_runs'
-    outs = 'cycles_0_9_4_alpha_cycles_season'
+    
+    ins = thread_info["runs_table"]      
+    outs = get_match_from_list(thread_info["output_tables"], "cycles_season")
+    weathercol = get_match_from_list(thread_info["input_columns"], "cycles_weather")
+
     if isinstance(locations, list):
         location_list = "','".join(list(locations))
         location_list = "'" + location_list + "'"
@@ -136,13 +204,13 @@ def update_figure(crop, locations, planting, year,thread_id):
                 FROM threads_inputs where threadid = '{}') ti
                 INNER JOIN
                 (select * from {} where threadid = '{}') i
-                ON ti.id = i.cycles_weather)
+                ON ti.id = i.{})
             WHERE crop_name LIKE '{}' AND start_planting_day = {}
             AND location IN ({})
             ) ins
             INNER JOIN {} outs
             ON ins.mint_runid = outs.mint_runid) inout
-            WHERE inout.year = {} """.format(thread_id,ins,thread_id,crop,planting,location_list,outs,year)
+            WHERE inout.year = {} """.format(thread_id,ins,thread_id,weathercol,crop,planting,location_list,outs,year)
 
     figdata = pd.DataFrame(pd.read_sql(query, con))
     fig_list = []
