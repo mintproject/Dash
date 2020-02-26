@@ -197,3 +197,8 @@ def generate_layout(thread_id):
         render_example5()
     )
     return dlayout
+
+# Bind callbacks.
+register_example1()
+register_example4()
+register_example5()
