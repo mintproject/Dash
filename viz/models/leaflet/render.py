@@ -69,11 +69,3 @@ def generate_layout(thread_id):
     ])
     return dlayout
 
-# Bind Callbacks
-def set_baselayer():
-    @app.callback(Output(BASE_LAYER_ID, "url"),
-                  [Input(BASE_LAYER_DROPDOWN_ID, "value")])
-    def set_baselayer(url):
-        return url
-
-#register_geotiff()
