@@ -1,14 +1,14 @@
-import json
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_leaflet as dl
+## FOR LIVE
+from viz.utils import *
 
-from dash.dependencies import Output, Input
+#styling
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
+'https://codepen.io/chriddyp/pen/brPBPO.css']
+
 
 # Mapbox setup
 mapbox_url = "https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{{z}}/{{x}}/{{y}}{{r}}?access_token={access_token}"
-mapbox_token ="pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbXp2MGNrIn0.ohZKBd1TFwW85VjKje4DAg"  # settings.MAPBOX_TOKEN
+#"pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbXp2MGNrIn0.ohZKBd1TFwW85VjKje4DAg"  # settings.MAPBOX_TOKEN
 mapbox_ids = ["light-v9", "dark-v9", "streets-v9", "outdoors-v9", "satellite-streets-v9"]
 
 # region Example 1
@@ -76,7 +76,7 @@ def render_example1():
         html.Div(id=COORDINATE_CLICK_ID),
     ]
 
-def register_example1(app):
+def register_example1():
     @app.callback(Output(BASE_LAYER_ID, "url"),
                   [Input(BASE_LAYER_DROPDOWN_ID, "value")])
     def set_baselayer(url):
@@ -140,7 +140,7 @@ def render_example4():
         html.Button(id=BUTTON_PLAY_ID, children="Play/pause"),
     ]
 
-def register_example4(app):
+def register_example4():
     @app.callback(Output(VIDEO_OVERLAY_ID, 'play'),
                   [Input(BUTTON_PLAY_ID, 'n_clicks')])
     def play_pause(n):
@@ -150,11 +150,9 @@ def register_example4(app):
             return False
 # endregion
 
-# region Example 5
-
+# GeoTiff Example
 GEOTIFF_ID = "geotiff-id"
 GEOTIFF_MARKER_ID = "geotiff-marker-id"
-
 
 def render_example5():
     color_domain = dict(domainMin=20, domainMax=40, colorscale=['white', 'orange', 'red'])
@@ -166,15 +164,14 @@ def render_example5():
                zoom=5,
                children=[
                    dl.TileLayer(url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_nolabels/{z}/{x}/{y}.png"),
-                   dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True, url="/assets/tz850.tiff", band=1, opacity=0.8,
+                   dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True, url="/assets/images/leaflet_example/tz850.tiff", band=1, opacity=0.8,
                                      **color_domain),
                    dl.Colorbar(width=200, height=20, **color_domain, unit="°C", style={'color': 'black'}),
                    html.Div(id=GEOTIFF_MARKER_ID)
                ]),
     ]
 
-
-def register_example5(app):
+def register_example5():
     @app.callback(Output(GEOTIFF_MARKER_ID, 'children'),
                   [Input(GEOTIFF_ID, 'click_lat_lng_val')])
     def geotiff_marker(x):
@@ -190,23 +187,18 @@ def register_example5(app):
         else:
             return None
 
+# Layout
+def generate_layout(thread_id):
+    dlayout=html.Div(
+        render_example1() +
+        render_example2() +
+        render_example3() +
+        render_example4() +
+        render_example5()
+    )
+    return dlayout
 
-# endregion
-
-app = dash.Dash(__name__, external_scripts=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
-
-# Create layout.
-app.layout = html.Div(
-    render_example1() +
-    render_example2() +
-    render_example3() +
-    render_example4() +
-    render_example5()
-)
 # Bind callbacks.
-register_example1(app)
-register_example4(app)
-register_example5(app)
-
-if __name__ == '__main__':
-    app.run_server(debug=False, port=8150)
+register_example1()
+register_example4()
+register_example5()

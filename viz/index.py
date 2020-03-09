@@ -16,8 +16,8 @@ from viz.models.upload import render as render_upload
 from viz.models.scatter_plot import render as render_scatter_plot
 from viz.models.map_points import render as render_map_points
 from viz.models.images import render as render_images
-## Test platform for new leaflet elements
 from viz.models.leaflet import render as render_leaflet
+from viz.models.leaflet_demo import render as render_leaflet_demo # DEMO page for leaflet elements
 
 # from viz.models.test_render import render as render_test_render
 
@@ -30,7 +30,8 @@ UPLOAD = "upload"
 SCATTER_PLOT = "scatter_plot"
 MAP_POINTS = "map_points"
 IMAGES = "images"
-LEAFLET = "leaflet" # Use for testing new leaflet mapping elements
+LEAFLET = "leaflet"
+LEAFLET_DEMO = "leaflet_demo"  # Use for demoing dash leaflet mapping elements
 # TEST_RENDER = "test_render"
 
 # Hard Coded Data
@@ -69,8 +70,10 @@ def display_page(pathname, search):
             return render_map_points.generate_layout(thread_id)
         elif model_name == IMAGES:
             return render_images.generate_layout(thread_id)
-        elif model_name == LEAFLET: # Test page: use for testing out new elements
+        elif model_name == LEAFLET:
             return render_leaflet.generate_layout(thread_id)
+        elif model_name == LEAFLET_DEMO: # Test page: use for testing out new elements
+            return render_leaflet_demo.generate_layout(thread_id)
 
 #         elif model_name == TEST_RENDER:
 #             return render_test_render.generate_layout(thread_id)
