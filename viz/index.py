@@ -88,4 +88,4 @@ def display_page(pathname, search):
 #             return render_test_render.generate_layout(thread_id)
 #         elif model_name == TEST_LAYOUT:
 #             return layout_test_layout
-    return '404'
+    return 'please enter valid visualization pathname'
