@@ -18,7 +18,7 @@ from viz.models.map_points import render as render_map_points
 from viz.models.images import render as render_images
 from viz.models.leaflet import render as render_leaflet
 from viz.models.leaflet_demo import render as render_leaflet_demo # DEMO page for leaflet elements
-from viz.models.modflow import render as render_modflow
+#from viz.models.modflow import render as render_modflow
 
 from viz.models.covid_texas import render as render_covid_texas
 
@@ -35,7 +35,7 @@ MAP_POINTS = "map_points"
 IMAGES = "images"
 LEAFLET = "leaflet"
 LEAFLET_DEMO = "leaflet_demo"  # Use for demoing dash leaflet mapping elements
-MODFLOW = "modflow"
+#MODFLOW = "modflow"
 # TEST_RENDER = "test_render"
 COVID_TEXAS = "covid_texas"
 
@@ -79,8 +79,8 @@ def display_page(pathname, search):
             return render_leaflet.generate_layout(thread_id)
         elif model_name == LEAFLET_DEMO: # Test page: use for testing out new elements
             return render_leaflet_demo.generate_layout(thread_id)
-        elif model_name == MODFLOW:
-            return render_modflow.generate_layout(thread_id)
+#        elif model_name == MODFLOW:
+#            return render_modflow.generate_layout(thread_id)
         elif model_name == COVID_TEXAS:
             return render_covid_texas.generate_layout(thread_id)
 
@@ -88,4 +88,4 @@ def display_page(pathname, search):
 #             return render_test_render.generate_layout(thread_id)
 #         elif model_name == TEST_LAYOUT:
 #             return layout_test_layout
-    return '404'
+    return 'please enter valid visualization pathname'
