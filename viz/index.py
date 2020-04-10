@@ -21,6 +21,8 @@ from viz.models.leaflet_demo import render as render_leaflet_demo # DEMO page fo
 
 # from viz.models.test_render import render as render_test_render
 
+SCENARIO_ID = "scenario_id"
+SUB_GOAL_ID = "subgoal_id"
 THREAD_ID = "thread_id"
 
 #Render format: pass in threadid
@@ -53,6 +55,8 @@ app.layout = html.Div([
 def display_page(pathname, search):
     if pathname:
         model_name = str(pathname).replace('/', '')
+        scenario_id = parse_search(search, "%s" % SCENARIO_ID)
+        sub_goal_id = parse_search(search, "%s" % SUB_GOAL_ID)
         thread_id = parse_search(search, "%s" % THREAD_ID)
         if model_name == CYCLES_PARALLEL:
             return render_cycles_parallel.generate_layout(thread_id)
