@@ -29,3 +29,4 @@ def get_MINT_data(scenario_id, subgoal_id, thread_id):
     #     return {'Result':'No data found in Solutions Catalog for this thread'}
     except ApiException as e:
         print("Exception when calling ResultsApi->results_scenario_id_subgoal_id_thread_id_get: %s\n" % e)
+

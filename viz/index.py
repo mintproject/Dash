@@ -24,6 +24,7 @@ from viz.models.hand import render as render_hand
 from viz.models.covid_texas import render as render_covid_texas
 
 # from viz.models.test_render import render as render_test_render
+
 SCENARIO_ID = "scenario_id"
 SUBGOAL_ID = "subgoal_id"
 THREAD_ID = "thread_id"
@@ -63,6 +64,7 @@ def display_page(pathname, search):
         model_name = str(pathname).replace('/', '')
         scenario_id = parse_search(search, "%s" % SCENARIO_ID)
         subgoal_id = parse_search(search, "%s" % SUBGOAL_ID)
+
         thread_id = parse_search(search, "%s" % THREAD_ID)
         if model_name == CYCLES_PARALLEL:
             return render_cycles_parallel.generate_layout(thread_id)
