@@ -18,12 +18,14 @@ from viz.models.map_points import render as render_map_points
 from viz.models.images import render as render_images
 from viz.models.leaflet import render as render_leaflet
 from viz.models.leaflet_demo import render as render_leaflet_demo # DEMO page for leaflet elements
-#from viz.models.modflow import render as render_modflow
+from viz.models.modflow import render as render_modflow
+from viz.models.hand import render as render_hand
 
 from viz.models.covid_texas import render as render_covid_texas
 
 # from viz.models.test_render import render as render_test_render
-
+SCENARIO_ID = "scenario_id"
+SUBGOAL_ID = "subgoal_id"
 THREAD_ID = "thread_id"
 
 #Render format: pass in threadid
@@ -35,7 +37,8 @@ MAP_POINTS = "map_points"
 IMAGES = "images"
 LEAFLET = "leaflet"
 LEAFLET_DEMO = "leaflet_demo"  # Use for demoing dash leaflet mapping elements
-#MODFLOW = "modflow"
+MODFLOW = "modflow"
+HAND = "hand"
 # TEST_RENDER = "test_render"
 COVID_TEXAS = "covid_texas"
 
@@ -58,6 +61,8 @@ app.layout = html.Div([
 def display_page(pathname, search):
     if pathname:
         model_name = str(pathname).replace('/', '')
+        scenario_id = parse_search(search, "%s" % SCENARIO_ID)
+        subgoal_id = parse_search(search, "%s" % SUBGOAL_ID)
         thread_id = parse_search(search, "%s" % THREAD_ID)
         if model_name == CYCLES_PARALLEL:
             return render_cycles_parallel.generate_layout(thread_id)
@@ -79,8 +84,10 @@ def display_page(pathname, search):
             return render_leaflet.generate_layout(thread_id)
         elif model_name == LEAFLET_DEMO: # Test page: use for testing out new elements
             return render_leaflet_demo.generate_layout(thread_id)
-#        elif model_name == MODFLOW:
-#            return render_modflow.generate_layout(thread_id)
+        elif model_name == MODFLOW:
+            return render_modflow.generate_layout(scenario_id, subgoal_id,thread_id)
+        elif model_name == HAND:
+            return render_hand.generate_layout(scenario_id, subgoal_id, thread_id)
         elif model_name == COVID_TEXAS:
             return render_covid_texas.generate_layout(thread_id)
 
@@ -88,4 +95,4 @@ def display_page(pathname, search):
 #             return render_test_render.generate_layout(thread_id)
 #         elif model_name == TEST_LAYOUT:
 #             return layout_test_layout
-    return 'please enter valid visualization pathname'
+    return 'Model not found'
