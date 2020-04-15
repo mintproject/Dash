@@ -35,9 +35,14 @@ def render_geotiff(geotiff_file, geotiff_id):
 
 # Layout
 def generate_layout(scenario_id, subgoal_id, thread_id):
+    geotiff_file = ''
     resultsdf = get_MINT_data(scenario_id, subgoal_id, thread_id)
     fileurls = resultsdf[(resultsdf['url'].str.contains('distance-down'))&(~resultsdf['url'].str.contains('image'))]['url']
-    geotiff_file = fileurls[0]
+    newraster = fileurls[fileurls.str.contains('distance-down-raster')]
+    if len(newraster) > 0:
+        geotiff_file = newraster.iloc[0]
+    else:
+        geotiff_file = fileurls.iloc[0]
     #cols = df.columns.values.tolist()
 
     dlayout=html.Div([
