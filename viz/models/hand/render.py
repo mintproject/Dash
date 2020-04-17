@@ -17,7 +17,7 @@ mapbox_token ="pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbX
 
 #Generate map functions
 def render_geotiff(geotiff_file, geotiff_id):
-    color_domain = dict(domainMin=0, domainMax=20, colorscale=['blue', 'red'])
+    color_domain = dict(domainMin=0, domainMax=20, colorscale=['orange', 'yellow','green','blue'])
     return [
         dl.Map(style={'width': '1000px', 'height': '500px'},
                center=[30.1844199, -97.8200228],
