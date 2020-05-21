@@ -1,4 +1,5 @@
 -i https://pypi.org/simple
+solutioncatalog-api
 dash-leaflet==0.0.3
 python-dotenv
 pybase64==1.0.0

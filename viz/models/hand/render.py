@@ -17,7 +17,7 @@ mapbox_token ="pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbX
 
 #Generate map functions
 def render_geotiff(geotiff_file, geotiff_id):
-    color_domain = dict(domainMin=0, domainMax=20, colorscale=['blue', 'red'])
+    color_domain = dict(domainMin=0, domainMax=20, colorscale=['orange', 'yellow','green','blue'])
     return [
         dl.Map(style={'width': '1000px', 'height': '500px'},
                center=[30.1844199, -97.8200228],
@@ -35,9 +35,14 @@ def render_geotiff(geotiff_file, geotiff_id):
 
 # Layout
 def generate_layout(scenario_id, subgoal_id, thread_id):
+    geotiff_file = ''
     resultsdf = get_MINT_data(scenario_id, subgoal_id, thread_id)
     fileurls = resultsdf[(resultsdf['url'].str.contains('distance-down'))&(~resultsdf['url'].str.contains('image'))]['url']
-    geotiff_file = fileurls[0]
+    newraster = fileurls[fileurls.str.contains('distance-down-raster')]
+    if len(newraster) > 0:
+        geotiff_file = newraster.iloc[0]
+    else:
+        geotiff_file = fileurls.iloc[0]
     #cols = df.columns.values.tolist()
 
     dlayout=html.Div([
