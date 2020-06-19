@@ -64,7 +64,7 @@ def load_thread_info(thread_id):
         models = meta["thread"]["models"]
         for modelid in models:
             model = models[modelid]
-            model_config = model["model_configuration"]
+            model_config = re.sub(".+/", "", model["model_configuration"])
             runs_table_name = fix_dbname("{}_runs".format(model_config))
             mname = re.sub(".+/", "", model_config)
 
@@ -219,6 +219,8 @@ def update_figure(crop, locations, planting, year, thread_info, thread_id):
     for l in locations:
         n = n + 1
         ldata = filtered_df[filtered_df.location == l]
+        if ldata.empty:
+            continue
         graphid = 'graph-' + str(n)
         fig = px.line(
             ldata,

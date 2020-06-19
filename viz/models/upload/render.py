@@ -1,5 +1,6 @@
 ## FOR LIVE
 from viz.utils import *
+import re
 
 #styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
@@ -24,7 +25,7 @@ def generate_layout(thread_id):
             html.Div([
                 html.H4('Upload and Visualize Data'),
             ],className="six columns"),
-            html.Div(id='uploadInfo',className='five columns',style={'float':'right','margin-top':'30px'}),
+            html.Div(id='uploadInfo',className='five columns',style={'float':'right','marginTop':'30px'}),
         ],className='row'),
         html.Div([
             dcc.Tabs(id="tabs",
@@ -108,7 +109,7 @@ def generate_layout(thread_id):
         ],className='row'),
         html.Div([
             html.Div(id='upload-datatable'),
-        ],className='row',style={'border-top':'2px solid black','margin-top':'20px','padding-top':'20px'}),
+        ],className='row',style={'borderTop':'2px solid black','marginTop':'20px','paddingTop':'20px'}),
     ])
     return dlayout
 
@@ -129,7 +130,7 @@ def load_thread_data(thread_id):
         models = meta_df.metadata[0]["thread"]["models"]
         for modelid in models:
             model = models[modelid]
-            model_config = model["model_configuration"]
+            model_config = re.sub(".+/", "", model["model_configuration"])
 
             runs_table_name = fix_dbname("{}_runs".format(model_config))
 
@@ -151,6 +152,7 @@ def load_thread_data(thread_id):
                     WHERE runs.threadid='{}' """.format(runs_table_name, output_table_name, thread_id)
             df = pd.DataFrame(pd.read_sql(data_query, con))
             df = df.drop(["threadid"], axis=1)
+            df = df.loc[:,~df.columns.duplicated()] # Remove duplicate columns like mint_runid
             return df
 
 def store_data(dataframe):
@@ -212,7 +214,8 @@ def parse_contents(contents, filename):
 
 # Build dash data table from dataframe
 def create_datatable(dataframe):
-    dtable = dt.DataTable(
+    print(dataframe.columns)
+    dtable = dash_table.DataTable(
         # Table Data
                     id='dtable',
                     data=dataframe.to_dict('records'),
