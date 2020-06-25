@@ -16,12 +16,14 @@ mapbox_token ="pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbX
 # Get MINT API data
 
 #Generate map functions
-def render_geotiff(geotiff_file, geotiff_id):
-    color_domain = dict(domainMin=0, domainMax=20, colorscale=['blue', 'red'])
+def render_geotiff(geotiff_file, geotiff_id, center, bounds):
+    color_domain = dict(domainMin=0, domainMax=20, colorscale=['orange', 'yellow','green','blue'])
     return [
         dl.Map(style={'width': '1000px', 'height': '500px'},
-               center=[30.1844199, -97.8200228],
-               zoom = 10,
+              center= center,
+              bounds = bounds,
+              #center = [0, 0],
+               #zoom = 10,
                children=[
                    dl.TileLayer(id='baselayer'),
                    dl.GeoTIFFOverlay(id=geotiff_id, interactive=True, url=geotiff_file,  opacity=0.8,
@@ -35,13 +37,19 @@ def render_geotiff(geotiff_file, geotiff_id):
 
 # Layout
 def generate_layout(scenario_id, subgoal_id, thread_id):
+    geotiff_file = ''
     resultsdf = get_MINT_data(scenario_id, subgoal_id, thread_id)
     fileurls = resultsdf[(resultsdf['url'].str.contains('distance-down'))&(~resultsdf['url'].str.contains('image'))]['url']
-    geotiff_file = fileurls[0]
+    newraster = fileurls[fileurls.str.contains('distance-down-raster')]
+    if len(newraster) > 0:
+        geotiff_file = newraster.iloc[0]
+    else:
+        geotiff_file = fileurls.iloc[0]
     #cols = df.columns.values.tolist()
-
+    # get center and bounds from GeoTIFF
+    geotiff_details = get_geotiff_details(geotiff_file)
     dlayout=html.Div([
         html.H5('HAND data visualization'),
-        html.Div(render_geotiff(geotiff_file,'hand_raster'))
+        html.Div(render_geotiff(geotiff_file,'hand_raster',geotiff_details['center'],geotiff_details['bounds']))
     ])
     return dlayout
