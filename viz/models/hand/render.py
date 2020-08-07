@@ -48,6 +48,10 @@ def generate_layout(scenario_id, subgoal_id, thread_id):
     #cols = df.columns.values.tolist()
     # get center and bounds from GeoTIFF
     geotiff_details = get_geotiff_details(geotiff_file)
+    geotiff_details["center"][0] = geotiff_details["center"][0] / 1000
+    geotiff_details["center"][1] = geotiff_details["center"][1] / 1000
+
+
     dlayout=html.Div([
         html.H5('HAND data visualization'),
         html.Div(render_geotiff(geotiff_file,'hand_raster',geotiff_details['center'],geotiff_details['bounds']))
