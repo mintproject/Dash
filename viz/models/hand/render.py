@@ -11,7 +11,7 @@ mapbox_url = "https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{{z}}/{{x}}/{{y
 mapbox_token ="pk.eyJ1IjoiaGVscGZ1bHRhbmdlbnQiLCJhIjoiY2tka3F2N3JmMGN1czJya3lnazA2cXIwbiJ9._NRiyORkWgoUuLJV9H3iYg"  # settings.MAPBOX_TOKEN
 
 
-#update mapbox tokwn on 08/07/2020 to sp...tacc....account
+#update mapbox token on 08/07/2020 to sp...tacc....account
 #pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbXp2MGNrIn0.ohZKBd1TFwW85VjKje4DAg
 
 # Manipulate Data FUNCTIONS
