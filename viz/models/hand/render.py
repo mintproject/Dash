@@ -8,9 +8,11 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
 
 # Mapbox setup
 mapbox_url = "https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{{z}}/{{x}}/{{y}}{{r}}?access_token={access_token}"
-mapbox_token ="pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbXp2MGNrIn0.ohZKBd1TFwW85VjKje4DAg"  # settings.MAPBOX_TOKEN
+mapbox_token ="pk.eyJ1IjoiaGVscGZ1bHRhbmdlbnQiLCJhIjoiY2tka3F2N3JmMGN1czJya3lnazA2cXIwbiJ9._NRiyORkWgoUuLJV9H3iYg"  # settings.MAPBOX_TOKEN
 
 
+
+#pk.eyJ1IjoibHBlYXJzb24tbWFwcyIsImEiOiJjazRhZDh5djQwMnpuM2dud3RpbXp2MGNrIn0.ohZKBd1TFwW85VjKje4DAg
 
 # Manipulate Data FUNCTIONS
 # Get MINT API data
