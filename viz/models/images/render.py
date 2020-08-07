@@ -74,7 +74,7 @@ def obtain_params(thread_id, mint_runid=None):
         models = meta["thread"]["models"]
         for modelid in models:
             model = models[modelid]
-            model_config = model["model_configuration"]
+            model_config = re.sub(".+/", "", model["model_configuration"])
             runs_table_name = fix_dbname("{}_runs".format(model_config))
 
             if mint_runid is None:

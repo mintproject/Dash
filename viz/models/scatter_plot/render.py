@@ -1,4 +1,5 @@
 from viz.utils import *
+import re
 
 # styling
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',
@@ -54,7 +55,7 @@ def load_thread_data(thread_id):
         models = meta["thread"]["models"]
         for modelid in models:
             model = models[modelid]
-            model_config = model["model_configuration"]
+            model_config = re.sub(".+/", "", model["model_configuration"])
             runs_table_name = fix_dbname("{}_runs".format(model_config))
 
             op_table_query = "SELECT output_table_name from threads_output_table WHERE threadid='{}'".format(thread_id)
